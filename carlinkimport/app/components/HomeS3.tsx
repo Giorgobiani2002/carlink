@@ -72,7 +72,7 @@ export default function HomeS3() {
                 className="w-full mt-4"
               >
                 <img
-                  src="./logistic.jpg"
+                  src="./logistic.webp"
                   height="1000"
                   width="1000"
                   className="w-full h-60 object-cover rounded-xl group-hover/card:shadow-xl"
@@ -100,7 +100,7 @@ export default function HomeS3() {
                 className="w-full mt-4"
               >
                 <img
-                  src="./logistic2.jpg"
+                  src="./logistic2.webp"
                   height="1000"
                   width="1000"
                   className="w-full h-60 object-cover rounded-xl group-hover/card:shadow-xl"
