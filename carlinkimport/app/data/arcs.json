@@ -1,0 +1,20 @@
+[
+    {
+      "order": 1,
+      "startLat": 40.7128,
+      "startLng": -74.0060,
+      "endLat": 51.5074,
+      "endLng": -0.1278,
+      "arcAlt": 0.3,
+      "color": "#ff6b6b"
+    },
+    {
+      "order": 2,
+      "startLat": 35.6762,
+      "startLng": 139.6503,
+      "endLat": 1.3521,
+      "endLng": 103.8198,
+      "arcAlt": 0.4,
+      "color": "#4ecdc4"
+    }
+  ]
