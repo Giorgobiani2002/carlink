@@ -9,7 +9,7 @@ export default function HomeS1() {
     <div className="relative w-full h-screen">
       {/* Background Video */}
       <video
-        src="/video.mp4"
+        src="/lambo.webm"
         autoPlay
         loop
         muted
