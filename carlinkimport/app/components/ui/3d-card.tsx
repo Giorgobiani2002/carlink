@@ -1,6 +1,5 @@
 "use client";
 
-
 import { cn } from "@/app/lib/utils";
 import React, {
   createContext,
@@ -8,11 +7,25 @@ import React, {
   useContext,
   useRef,
   useEffect,
+  forwardRef,
+  ElementType,
 } from "react";
+
+// --- Context and Hooks ---
 
 const MouseEnterContext = createContext<
   [boolean, React.Dispatch<React.SetStateAction<boolean>>] | undefined
 >(undefined);
+
+export const useMouseEnter = () => {
+  const context = useContext(MouseEnterContext);
+  if (context === undefined) {
+    throw new Error("useMouseEnter must be used within a MouseEnterProvider");
+  }
+  return context;
+};
+
+// --- CardContainer & CardBody (Standard Definitions) ---
 
 export const CardContainer = ({
   children,
@@ -86,7 +99,7 @@ export const CardBody = ({
   return (
     <div
       className={cn(
-        "h-96 w-96 [transform-style:preserve-3d]  [&>*]:[transform-style:preserve-3d]",
+        "h-96 w-96 [transform-style:preserve-3d] [&>*]:[transform-style:preserve-3d]",
         className
       )}
     >
@@ -95,19 +108,10 @@ export const CardBody = ({
   );
 };
 
-export const CardItem = ({
-  as: Tag = "div",
-  children,
-  className,
-  translateX = 0,
-  translateY = 0,
-  translateZ = 0,
-  rotateX = 0,
-  rotateY = 0,
-  rotateZ = 0,
-  ...rest
-}: {
-  as?: React.ElementType;
+// --- FIXED CardItem Component ---
+
+interface CardItemProps {
+  as?: ElementType;
   children: React.ReactNode;
   className?: string;
   translateX?: number | string;
@@ -117,39 +121,63 @@ export const CardItem = ({
   rotateY?: number | string;
   rotateZ?: number | string;
   [key: string]: any;
-}) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const [isMouseEntered] = useMouseEnter();
+}
 
-  useEffect(() => {
-    handleAnimations();
-  }, [isMouseEntered]);
+export const CardItem = forwardRef<any, CardItemProps>(
+  (
+    {
+      as: Tag = 'div',
+      children,
+      className,
+      translateX = 0,
+      translateY = 0,
+      translateZ = 0,
+      rotateX = 0,
+      rotateY = 0,
+      rotateZ = 0,
+      ...rest
+    },
+    forwardedRef
+  ) => {
+    const internalRef = useRef<any>(null);
+    const [isMouseEntered] = useMouseEnter();
 
-  const handleAnimations = () => {
-    if (!ref.current) return;
-    if (isMouseEntered) {
-      ref.current.style.transform = `translateX(${translateX}px) translateY(${translateY}px) translateZ(${translateZ}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
-    } else {
-      ref.current.style.transform = `translateX(0px) translateY(0px) translateZ(0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)`;
-    }
-  };
+    const setRefs = React.useCallback(
+      (node: any) => {
+        internalRef.current = node;
 
-  return (
-    <Tag
-      ref={ref}
-      className={cn("w-fit transition duration-200 ease-linear", className)}
-      {...rest}
-    >
-      {children}
-    </Tag>
-  );
-};
+        if (typeof forwardedRef === 'function') {
+          forwardedRef(node);
+        } else if (forwardedRef) {
+          (forwardedRef as React.MutableRefObject<any>).current = node;
+        }
+      },
+      [forwardedRef]
+    );
 
-// Create a hook to use the context
-export const useMouseEnter = () => {
-  const context = useContext(MouseEnterContext);
-  if (context === undefined) {
-    throw new Error("useMouseEnter must be used within a MouseEnterProvider");
+    useEffect(() => {
+      handleAnimations();
+    }, [isMouseEntered]);
+
+    const handleAnimations = () => {
+      if (!internalRef.current) return;
+      if (isMouseEntered) {
+        internalRef.current.style.transform = `translateX(${translateX}px) translateY(${translateY}px) translateZ(${translateZ}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
+      } else {
+        internalRef.current.style.transform = `translateX(0px) translateY(0px) translateZ(0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)`;
+      }
+    };
+
+    return (
+      <Tag
+        ref={setRefs}
+        className={cn("w-fit transition duration-200 ease-linear", className)}
+        {...rest}
+      >
+        {children}
+      </Tag>
+    );
   }
-  return context;
-};
+);
+
+CardItem.displayName = 'CardItem';
