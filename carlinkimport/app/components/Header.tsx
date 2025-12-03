@@ -13,20 +13,25 @@ export default function Header() {
 
   return (
     <header className="bg-white py-4 shadow-md sticky top-0 z-50">
-      <nav className="max-w-[1220px] m-auto w-full px-4 md:px-6 font-serif text-[18px] flex justify-between items-center">
+      <nav className="max-w-[1220px] max-h-[81px] m-auto w-full px-4 md:px-6 font-serif text-[18px] flex justify-between items-center">
         {/* Logo */}
         <div className="flex items-center">
           <Image
-            src={"/Carlink.png"}
+            src={"/carlinkpng2.png"}
             width={120}
-            height={120}
+            height={87}
             alt="Carlink Logo"
-            className="w-[120px] h-auto"
+            className="mt-3"
           />
         </div>
 
         {/* Desktop Navigation (Hidden on small/medium, shown on large) */}
-        <ul className="hidden md:flex max-w-[630px] w-full justify-between text-black gap-6">
+        <ul className="hidden md:flex max-w-[700px] w-full justify-between text-black gap-6">
+          <li>
+            <Link href={"/auctions"} className="hover:text-green-900 transition-colors">
+            აუქციონი
+            </Link>
+          </li>
           <li>
             <Link href={"/"} className="hover:text-green-900 transition-colors">
               მთავარი
@@ -44,12 +49,7 @@ export default function Header() {
           </li>
           <li>
             <Link href={"/"} className="hover:text-green-900 transition-colors">
-              გახდი დილერი
-            </Link>
-          </li>
-          <li>
-            <Link href={"/"} className="hover:text-green-900 transition-colors">
-              ბენეფიტები
+            კალკულატორი
             </Link>
           </li>
         </ul>
@@ -91,6 +91,11 @@ export default function Header() {
       >
         <ul className="flex flex-col items-start gap-4 text-black text-xl font-semibold border-b pb-4 border-gray-100">
           <li>
+            <Link href={"/auctions"} onClick={toggleMenu} className="block py-2">
+              აუქციონი
+            </Link>
+          </li>
+          <li>
             <Link href={"/"} onClick={toggleMenu} className="block py-2">
               მთავარი
             </Link>
@@ -107,12 +112,7 @@ export default function Header() {
           </li>
           <li>
             <Link href={"/"} onClick={toggleMenu} className="block py-2">
-              გახდი დილერი
-            </Link>
-          </li>
-          <li>
-            <Link href={"/"} onClick={toggleMenu} className="block py-2">
-              ბენეფიტები
+            დანამატის კალკულატორი
             </Link>
           </li>
         </ul>

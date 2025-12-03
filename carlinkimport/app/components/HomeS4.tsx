@@ -143,7 +143,7 @@ export default function FeeCalculator() {
   }, [iaaiAmount, iaaiFeeResult]);
 
   return (
-    <div className="bg-[#1F1F1F] min-h-screen flex flex-col items-center  p-6">
+    <div className="bg-[#1F1F1F] pb-21 flex flex-col items-center  p-6">
       <div className="w-24 h-1 bg-green-900 mx-auto mb-10 rounded-full"></div>
 
       <h2 className="text-center text-white text-4xl leading-tight mb-12">
