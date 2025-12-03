@@ -28,31 +28,33 @@ export default function HomeS1() {
         <p className="text-white">
           ავტომობილების იმპორტი ამერიკიდან და ჩინეთიდან
         </p>
-        <button className="w-60 h-[60px] rounded-4xl bg-green-900 text-white mt-4">
-          მოგვწერეთ ახლავე
+        <button
+          className="w-60 h-14 rounded-full bg-green-900 text-white mt-4 
+                   hover:w-72 hover:bg-green-800 
+                   transform transition-all duration-300 hover:translate-x-2"
+        >
+          აუქციონები
         </button>
       </div>
 
       {/* Fixed Button on the Right */}
       <div className="fixed right-5 bottom-20 z-50">
-  <button
-    onClick={() => setIsOpen(true)}
-    className="relative w-16 h-16 rounded-full bg-green-900 flex items-center justify-center shadow-lg hover:bg-green-800 transition duration-300 group"
-    title="Contact us"
-  >
-    {/* Animated ping effect */}
-    <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-50 animate-ping"></span>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="relative w-16 h-16 rounded-full bg-green-900 flex items-center justify-center shadow-lg hover:bg-green-800 transition duration-300 group"
+          title="Contact us"
+        >
+          {/* Animated ping effect */}
+          <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-50 animate-ping"></span>
 
-    {/* Sergi Image */}
-    <img
-      src="/sergi.png"
-      alt="Contact"
-      className="relative w-15 h-15 rounded-full transition-transform duration-300 hover:scale-125 cursor-pointer"
-    />
-  </button>
-</div>
-
-
+          {/* Sergi Image */}
+          <img
+            src="/sergi.png"
+            alt="Contact"
+            className="relative w-15 h-15 rounded-full transition-transform duration-300 hover:scale-125 cursor-pointer"
+          />
+        </button>
+      </div>
 
       {/* Modal */}
       {isOpen && (
@@ -103,7 +105,7 @@ export default function HomeS1() {
                 <li>მრავალ-წლიანი გამოცდილება</li>
                 <li>6000+ კმაყოფილი მომხმარებელი</li>
                 <li>პროფესიონალი ქარდილერები</li>
-                
+
                 <li>დაზღვეული ტრანსპორტირება</li>
               </ul>
             </div>
