@@ -6,7 +6,7 @@ import { CardBody, CardContainer, CardItem } from "./ui/3d-card";
 
 export default function HomeS3() {
   return (
-    <div className="bg-[#1F1F1F] py-12 px-4 md:px-6 pt-[300px] md:pt-0">
+    <div id="services" className="bg-[#1F1F1F] py-12 px-4 md:px-6 pt-[300px] md:pt-0">
       
       <div className="w-24 h-1 bg-green-900 mx-auto mb-6 md:mb-8 rounded-full"></div>
       
