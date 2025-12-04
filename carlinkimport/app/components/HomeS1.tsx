@@ -119,7 +119,7 @@ export default function HomeS1() {
                 📞 Call
               </a>
               <a
-                href="https://www.facebook.com/sergi.baghduashvili"
+                href="https://www.facebook.com/profile.php?id=61583941749777"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 text-center py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition"

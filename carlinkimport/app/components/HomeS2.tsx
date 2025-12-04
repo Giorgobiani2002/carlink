@@ -40,7 +40,7 @@ export default function HomeS2() {
       <div className="max-w-[1220px] w-full m-auto items-center md:flex md:flex-row flex-col md:justify-between gap-10">
         {/* TEXT SECTION */}
         
-        <div className="flex flex-col h-[350px] max-w-[550px] justify-between m-auto px-4 md:px-0">
+        <div className="flex flex-col h-[350px] max-w-[550px] justify-between m-auto pl-4 pr-4 md:px-0 gap-2.5">
           <h2 className="text-[35px] text-white leading-9">
             <span className="text-green-900 leading-9">შეიძინე ავტომობილი</span>{" "}
             საუკეთესო პირობებით
@@ -53,21 +53,16 @@ export default function HomeS2() {
             მიმართულებიდან.
           </p>
 
-          <button
-            className="max-w-[177px] w-full h-[57px] rounded-4xl bg-green-900 text-white mt-4"
-            onClick={() =>
-              window.open(
-                "https://www.facebook.com/sergi.baghduashvili",
-                "_blank"
-              )
-            }
-          >
-            მოგვწერე
-          </button>
+          <a
+                href="tel:+995544440506"
+                className="max-w-[200px] text-center py-2 bg-green-900 text-white rounded-xl hover:bg-green-800 transition"
+              >
+                მოგვწერე
+              </a>
         </div>
 
         {/* GLOBE SECTION */}
-        <div id="globe-container" className="w-full h-[500px]">
+        <div id="globe-container" className="md:w-full md:h-[500px] w-[350px] h-[400px] m-auto">
           {showGlobe && <World globeConfig={globeConfig} data={arcsData} />}
         </div>
       </div>
