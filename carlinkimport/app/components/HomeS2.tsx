@@ -28,24 +28,40 @@ export default function HomeS2() {
   );
 
   return (
-    <div className="h-[630px] bg-[#1F1F1F] flex py-10 font-sans">
+    <div id="aboutus" className="h-[630px] bg-[#1F1F1F] py-10 font-sans">
+      <div className="w-24 h-1 bg-green-900 mx-auto mb-6 md:mb-8 rounded-full"></div>
+      
+      <h2 className="text-center text-white text-[28px] md:text-[35px] leading-snug md:leading-10 mb-10 md:mb-16">
+        <span className="text-green-900 font-extrabold">ჩვენს</span>{" "}
+        შესახებ
+      </h2>
+      
+      
       <div className="max-w-[1220px] w-full m-auto items-center md:flex md:flex-row flex-col md:justify-between gap-10">
-        
         {/* TEXT SECTION */}
-        <div className="flex flex-col h-[400px] max-w-[550px] justify-between m-auto px-4 md:px-0">
+        
+        <div className="flex flex-col h-[350px] max-w-[550px] justify-between m-auto px-4 md:px-0">
           <h2 className="text-[35px] text-white leading-9">
-            <span className="text-green-900 leading-9">
-              შეიძინე ავტომობილი
-            </span>{" "}
+            <span className="text-green-900 leading-9">შეიძინე ავტომობილი</span>{" "}
             საუკეთესო პირობებით
           </h2>
 
           <p className="text-white text-[18px]">
-            სანდო პარტნიორები და პროფესიონალი გუნდი – სწორედ ეს ქმნის იმ
-            სტაბილურობას, რომელსაც ჩვენი კლიენტები აფასებენ...
+            ქარლინკ აუტო იმპორტი და მისი გუნდი 2019 წლიდან აქტიურად ოპერირებს და
+            უზრუნველყოფს, ავტომობილების, მოტოციკლეტების, სპეც-ტქენიკის შეძენასა
+            და ტრანსპორტირებას როგორც ამერიკის ასევე კანადის და ჩინეთის
+            მიმართულებიდან.
           </p>
 
-          <button className="max-w-[177px] w-full h-[57px] rounded-4xl bg-green-900 text-white mt-4">
+          <button
+            className="max-w-[177px] w-full h-[57px] rounded-4xl bg-green-900 text-white mt-4"
+            onClick={() =>
+              window.open(
+                "https://www.facebook.com/sergi.baghduashvili",
+                "_blank"
+              )
+            }
+          >
             მოგვწერე
           </button>
         </div>

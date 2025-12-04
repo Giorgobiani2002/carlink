@@ -5,7 +5,7 @@ export default function HomeS1() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="relative w-full h-screen">
+    <div id="home" className="relative w-full h-screen">
       {/* Background Video */}
       <video
         src="/lambo.webm"
