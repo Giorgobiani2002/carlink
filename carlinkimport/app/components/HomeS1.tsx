@@ -1,4 +1,6 @@
 "use client";
+import Image from "next/image";
+import Link from "next/link";
 import React, { useState } from "react";
 
 export default function HomeS1() {
@@ -14,27 +16,32 @@ export default function HomeS1() {
         muted
         playsInline
         className="w-full h-full object-cover"
-        preload="none" 
+        preload="none"
       />
 
       {/* Text Overlay */}
       <div className="absolute inset-0 flex flex-col items-center gap-2 justify-center text-center px-4">
-        <h1 className="text-white text-[80px] font-bold drop-shadow-lg font-serif">
-          CARLINK
-        </h1>
-        <span className="text-green-900 font-serif text-[20px] font-extrabold">
-          AUTO IMPORT
-        </span>
-        <p className="text-white">
+        <Image
+          src={"/carlinkfooter.webp"}
+          width={300}
+          height={200}
+          alt="Carlink Logo"
+          className="mt-10 relative pointer-events-none"
+        />
+        <p className="text-white mt-[-118px] pointer-events-none">
           ავტომობილების იმპორტი ამერიკიდან და ჩინეთიდან
         </p>
-        <button
-          className="w-60 h-14 rounded-full bg-green-900 text-white mt-4 
-                   hover:w-72 hover:bg-green-800 
-                   transform transition-all duration-300 hover:translate-x-2"
-        >
-          აუქციონები
-        </button>
+        <Link href="/auctions">
+          <button
+            className="w-60 h-14 rounded-full bg-red-800 text-white mt-4 
+            hover:bg-red-400 hover:w-64 
+            transform transition-all duration-300 ease-out 
+            hover:-translate-y-2 hover:shadow-xl
+            cursor-pointer"
+          >
+            აუქციონები
+          </button>
+        </Link>
       </div>
 
       {/* Fixed Button on the Right */}
@@ -69,7 +76,7 @@ export default function HomeS1() {
             </button>
 
             {/* Modal Content */}
-            <h2 className="text-green-900 text-2xl font-bold mb-4 text-center">
+            <h2 className="text-red-900 text-2xl font-bold mb-4 text-center">
               🚘 მანქანის შერჩევა
             </h2>
             <p className="mb-4 text-gray-700 text-center">
@@ -82,30 +89,32 @@ export default function HomeS1() {
               <input
                 type="text"
                 placeholder="სახელი"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-900"
+                className="w-full border border-red-300 rounded-lg px-3 py-2 
+               focus:outline-none focus:ring-2 focus:ring-red-700"
               />
               <input
                 type="tel"
                 placeholder="+995 XXX XXX XXX"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-900"
+                className="w-full border border-red-300 rounded-lg px-3 py-2 
+               focus:outline-none focus:ring-2 focus:ring-red-700"
               />
 
               <button
                 type="submit"
-                className="w-full bg-green-900 text-white py-3 rounded-2xl hover:bg-green-800 transition mt-2"
+                className="w-full bg-black text-white cursor-pointer py-3 rounded-2xl 
+               hover:bg-red-600 transition mt-2 font-semibold"
               >
                 გაგზავნა
               </button>
             </form>
 
             {/* Optional Info Section */}
-            <div className="mt-6 text-gray-700 space-y-2">
-              <p>რატომ Carlink-ი?</p>
+            <div className="mt-6 text-black space-y-2">
+              <p className="font-bold">რატომ Carlink-ი?</p>
               <ul className="list-disc pl-5 space-y-1">
                 <li>მრავალ-წლიანი გამოცდილება</li>
                 <li>6000+ კმაყოფილი მომხმარებელი</li>
                 <li>პროფესიონალი ქარდილერები</li>
-
                 <li>დაზღვეული ტრანსპორტირება</li>
               </ul>
             </div>
@@ -114,7 +123,8 @@ export default function HomeS1() {
             <div className="mt-4 flex justify-between gap-4">
               <a
                 href="tel:+995544440506"
-                className="flex-1 text-center py-2 bg-green-900 text-white rounded-xl hover:bg-green-800 transition"
+                className="flex-1 text-center py-2 bg-black text-white 
+               rounded-xl hover:bg-red-600 transition font-semibold"
               >
                 📞 Call
               </a>
@@ -122,7 +132,8 @@ export default function HomeS1() {
                 href="https://www.facebook.com/profile.php?id=61583941749777"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 text-center py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition"
+                className="flex-1 text-center py-2 bg-black text-white 
+               rounded-xl hover:bg-red-500 transition font-semibold"
               >
                 💬 Messenger
               </a>

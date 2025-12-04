@@ -133,10 +133,10 @@ export default function FeeCalculator() {
 
   return (
     <div id="calculator" className="bg-[#1F1F1F] pb-12 flex flex-col items-center p-6 ">
-      <div className="w-24 h-1 bg-green-900 mx-auto mb-10 rounded-full"></div>
+      <div className="w-24 h-1 bg-red-800 mx-auto mb-10 rounded-full"></div>
 
-      <h2 className="text-center text-white text-4xl leading-tight mb-12 font-extrabold">
-        დანამატის კალკულატორი
+      <h2 className="text-center text-red-800 text-4xl leading-tight mb-12 font-extrabold">
+        დანამატის <span className="text-white">კალკულატორი</span> 
       </h2>
 
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8">
