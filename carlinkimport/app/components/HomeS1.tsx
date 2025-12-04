@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import React, { useState } from "react";
 
 export default function HomeS1() {
@@ -15,6 +14,7 @@ export default function HomeS1() {
         muted
         playsInline
         className="w-full h-full object-cover"
+        preload="none" 
       />
 
       {/* Text Overlay */}
@@ -41,7 +41,7 @@ export default function HomeS1() {
       <div className="fixed right-5 bottom-20 z-50">
         <button
           onClick={() => setIsOpen(true)}
-          className="relative w-16 h-16 rounded-full bg-green-900 flex items-center justify-center shadow-lg hover:bg-green-800 transition duration-300 group"
+          className="relative w-16 h-16 rounded-full bg-black  flex items-center justify-center shadow-lg hover:bg-gray-800 transition duration-300 group"
           title="Contact us"
         >
           {/* Animated ping effect */}
@@ -49,9 +49,9 @@ export default function HomeS1() {
 
           {/* Sergi Image */}
           <img
-            src="/sergi.png"
+            src="/carlinkfooter.webp"
             alt="Contact"
-            className="relative w-15 h-15 rounded-full transition-transform duration-300 hover:scale-125 cursor-pointer"
+            className="relative w-20 h-20 rounded-full transition-transform duration-300 hover:scale-125 cursor-pointer"
           />
         </button>
       </div>
