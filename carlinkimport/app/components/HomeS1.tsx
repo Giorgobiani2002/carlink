@@ -20,6 +20,10 @@ interface ModelResult {
   Model_Name: string;
 }
 
+interface ApiResponse {
+  Results: ModelResult[];
+}
+
 export default function HomeS1() {
   const [isOpen, setIsOpen] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
@@ -32,18 +36,20 @@ export default function HomeS1() {
 
   const [selectedMake, setSelectedMake] = useState("");
   const [selectedModel, setSelectedModel] = useState("");
-  const [selectedFromYear, setSelectedFromYear] = useState<number | "">("");
-  const [selectedToYear, setSelectedToYear] = useState<number | "">("");
+  const [selectedYearFrom, setSelectedYearFrom] = useState<number | "">("");
+  const [selectedYearTo, setSelectedYearTo] = useState<number | "">("");
 
   // Search states
   const [makeSearch, setMakeSearch] = useState("");
   const [modelSearch, setModelSearch] = useState("");
-  const [yearSearch, setYearSearch] = useState("");
+  const [yearFromSearch, setYearFromSearch] = useState("");
+  const [yearToSearch, setYearToSearch] = useState("");
 
   // Dropdown open states
   const [isMakeOpen, setIsMakeOpen] = useState(false);
   const [isModelOpen, setIsModelOpen] = useState(false);
-  const [isYearOpen, setIsYearOpen] = useState(false);
+  const [isYearFromOpen, setIsYearFromOpen] = useState(false);
+  const [isYearToOpen, setIsYearToOpen] = useState(false);
 
   // Loading states
   const [loadingMakes, setLoadingMakes] = useState(false);
@@ -51,6 +57,7 @@ export default function HomeS1() {
 
   // Fetch popular makes initially
   useEffect(() => {
+    // Start with popular makes for instant display
     const popularMakes: CarOption[] = [
       "Toyota", "Honda", "Ford", "Chevrolet", "BMW", 
       "Mercedes-Benz", "Audi", "Nissan", "Hyundai", "Kia",
@@ -60,69 +67,55 @@ export default function HomeS1() {
       "RAM", "Lincoln", "Acura", "Infiniti", "Mini",
       "Mitsubishi", "Fiat", "Alfa Romeo", "Genesis", "Smart"
     ].map(make => ({ value: make, label: make }));
-
+    
     setMakes(popularMakes);
-
+    
+    // Fetch all makes in background
     setLoadingMakes(true);
     fetch("https://vpic.nhtsa.dot.gov/api/vehicles/getallmakes?format=json")
       .then(res => res.json())
       .then(data => {
+        // Combine popular with all makes, remove duplicates
         const allMakes = data.Results.map((item: MakeResult) => item.Make_Name);
         const uniqueMakes = [...new Set([...popularMakes.map(m => m.value as string), ...allMakes])];
-        const sortedMakes = uniqueMakes.sort((a, b) => a.localeCompare(b));
+        const sortedMakes = uniqueMakes.sort((a: string, b: string) => a.localeCompare(b));
         setMakes(sortedMakes.map(make => ({ value: make, label: make })));
       })
       .catch(err => console.log("Error fetching makes:", err))
       .finally(() => setLoadingMakes(false));
   }, []);
 
-  const filteredMakes = makes.filter(make => make.label.toLowerCase().includes(makeSearch.toLowerCase())).slice(0, 100);
-  const filteredModels = models.filter(model => model.label.toLowerCase().includes(modelSearch.toLowerCase())).slice(0, 100);
-  const filteredYears = years.filter(year => year.label.includes(yearSearch));
+  // Filter makes based on search
+  const filteredMakes = makes.filter(make => 
+    make.label.toLowerCase().includes(makeSearch.toLowerCase())
+  ).slice(0, 100); // Limit to 100 for performance
 
-  // Fetch models when make changes
-  useEffect(() => {
-    if (!selectedMake) {
-      setModels([]);
-      setSelectedModel("");
-      return;
-    }
-    
-    setLoadingModels(true);
-    fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/${selectedMake}?format=json`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.Results && data.Results.length > 0) {
-          const uniqueModels = [...new Set(data.Results.map((item: ModelResult) => item.Model_Name))];
-          const sortedModels = uniqueModels.sort((a, b) => a.localeCompare(b));
-          setModels(sortedModels.map(model => ({ value: model, label: model })));
-        } else {
-          setModels([]);
-        }
-        setSelectedModel("");
-        setModelSearch("");
-      })
-      .catch(err => {
-        console.log("Error fetching models:", err);
-        toast.error("Failed to load models");
-      })
-      .finally(() => setLoadingModels(false));
-  }, [selectedMake]);
+  // Filter models based on search
+  const filteredModels = models.filter(model => 
+    model.label.toLowerCase().includes(modelSearch.toLowerCase())
+  ).slice(0, 100);
 
   // Generate years when model changes
   useEffect(() => {
     if (!selectedMake || !selectedModel) {
       setYears([]);
-      setSelectedFromYear("");
-      setSelectedToYear("");
-      setYearSearch("");
+      setSelectedYearFrom("");
+      setSelectedYearTo("");
+      setYearFromSearch("");
+      setYearToSearch("");
       return;
     }
     const currentYear = new Date().getFullYear();
-    const yearsArray = Array.from({ length: 30 }, (_, i) => currentYear - i);
+    const yearsArray = Array.from({ length: 40 }, (_, i) => currentYear - i); // Last 40 years
     setYears(yearsArray.map(year => ({ value: year, label: year.toString() })));
-    setYearSearch("");
+    setYearFromSearch("");
+    setYearToSearch("");
   }, [selectedMake, selectedModel]);
+
+  // Filter years based on search
+  const filteredYears = years.filter(year => 
+    year.label.includes(yearFromSearch) || year.label.includes(yearToSearch)
+  );
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -130,7 +123,8 @@ export default function HomeS1() {
       const target = event.target as HTMLElement;
       if (!target.closest('.make-dropdown')) setIsMakeOpen(false);
       if (!target.closest('.model-dropdown')) setIsModelOpen(false);
-      if (!target.closest('.year-dropdown')) setIsYearOpen(false);
+      if (!target.closest('.year-from-dropdown')) setIsYearFromOpen(false);
+      if (!target.closest('.year-to-dropdown')) setIsYearToOpen(false);
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -149,7 +143,22 @@ export default function HomeS1() {
       return;
     }
 
+    // Validate year range
+    if (selectedYearFrom && selectedYearTo && selectedYearFrom > selectedYearTo) {
+      toast.error("წელი 'დან' არ უნდა იყოს მეტი ვიდრე წელი 'მდე'!");
+      return;
+    }
+
     setIsSending(true);
+
+    // Create year range string
+    const yearRange = selectedYearFrom && selectedYearTo 
+      ? `${selectedYearFrom}-${selectedYearTo}`
+      : selectedYearFrom 
+        ? `From ${selectedYearFrom}`
+        : selectedYearTo 
+          ? `To ${selectedYearTo}`
+          : "";
 
     send(
       "service_2v5rcbm",
@@ -159,8 +168,7 @@ export default function HomeS1() {
         phone, 
         make: selectedMake, 
         model: selectedModel, 
-        yearFrom: selectedFromYear, 
-        yearTo: selectedToYear 
+        year: yearRange || "Not specified"
       },
       "zkuga8Pi8HVdc2H_N"
     )
@@ -169,14 +177,16 @@ export default function HomeS1() {
         form.reset();
         setSelectedMake("");
         setSelectedModel("");
-        setSelectedFromYear("");
-        setSelectedToYear("");
+        setSelectedYearFrom("");
+        setSelectedYearTo("");
         setMakeSearch("");
         setModelSearch("");
-        setYearSearch("");
+        setYearFromSearch("");
+        setYearToSearch("");
         setIsMakeOpen(false);
         setIsModelOpen(false);
-        setIsYearOpen(false);
+        setIsYearFromOpen(false);
+        setIsYearToOpen(false);
         setIsOpen(false);
       })
       .catch((err) => {
@@ -184,6 +194,36 @@ export default function HomeS1() {
       })
       .finally(() => setIsSending(false));
   };
+
+  // Fetch models when make changes
+  useEffect(() => {
+    if (!selectedMake) {
+      setModels([]);
+      setSelectedModel("");
+      return;
+    }
+    
+    setLoadingModels(true);
+    fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/${selectedMake}?format=json`)
+      .then(res => res.json())
+      .then((data: ApiResponse) => {
+        if (data.Results && data.Results.length > 0) {
+          const modelNames = data.Results.map((item: ModelResult) => item.Model_Name);
+          const uniqueModels = [...new Set(modelNames)];
+          const sortedModels = uniqueModels.sort((a: string, b: string) => a.localeCompare(b));
+          setModels(sortedModels.map(model => ({ value: model, label: model })));
+        } else {
+          setModels([]);
+        }
+        setSelectedModel("");
+        setModelSearch("");
+      })
+      .catch(err => {
+        console.log("Error fetching models:", err);
+        toast.error("Failed to load models");
+      })
+      .finally(() => setLoadingModels(false));
+  }, [selectedMake]);
 
   // Custom Dropdown Component
   const CustomDropdown = ({ 
@@ -329,100 +369,151 @@ export default function HomeS1() {
       </div>
 
       {/* Modal */}
-      <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 transition-opacity duration-300 ease-out ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
-        <div className={`bg-white rounded-2xl w-full max-w-md p-6 relative transform transition-all duration-300 ease-out ${isOpen ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-4"}`}>
-          <button onClick={() => setIsOpen(false)} className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-xl">&times;</button>
+      <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 transition-opacity duration-300 ease-out ${
+        isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+      }`}>
+        <div className={`bg-white rounded-2xl w-full max-w-md p-6 relative transform transition-all duration-300 ease-out ${
+          isOpen ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-4"
+        }`}>
+          {/* Close */}
+          <button 
+            onClick={() => setIsOpen(false)} 
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-xl"
+          >
+            &times;
+          </button>
+
+          {/* Modal Content */}
           <h2 className="text-red-900 text-2xl font-bold mb-4 text-center">🚘 მანქანის შერჩევა</h2>
           <p className="mb-6 text-gray-700 text-center">
-            აირჩიეთ თქვენთვის სასურველი ავტომობილი და დატოვეთ თქვენი კონტაქტი, ჩვენი მენეჯერი დაგიკავშირდებათ მალე!
+            მე დაგეხმარები შენთვის სასურველი მანქანის შერჩევასა და ჩამოყვანაში. შეავსე ფორმა და ძალიან მალე დაგიკავშირდები
           </p>
 
+          {/* Form */}
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-            <input type="text" name="name" placeholder="სახელი" required className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-700" />
-            <input type="tel" name="phone" placeholder="+995 XXX XXX XXX" required className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-700" />
+            <input
+              type="text"
+              name="name"
+              placeholder="სახელი"
+              required
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-700"
+            />
+            <input
+              type="tel"
+              name="phone"
+              placeholder="+995 XXX XXX XXX"
+              required
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-700"
+            />
 
-            {/* Car Selection */}
-            <div className="flex flex-col gap-3">
-              {/* Make & Model */}
-              <div className="flex gap-2">
-                <div className="flex-1 make-dropdown">
-                  <CustomDropdown
-                    value={selectedMake}
-                    placeholder="Make"
-                    options={filteredMakes}
-                    onSelect={(value) => {
-                      setSelectedMake(value as string);
-                      setSelectedModel("");
-                      setSelectedFromYear("");
-                      setSelectedToYear("");
-                      setModelSearch("");
-                      setYearSearch("");
-                      setIsModelOpen(false);
-                      setIsYearOpen(false);
-                    }}
-                    search={makeSearch}
-                    onSearchChange={setMakeSearch}
-                    isOpen={isMakeOpen}
-                    setIsOpen={setIsMakeOpen}
-                    loading={loadingMakes}
-                  />
-                </div>
-
-                <div className="flex-1 model-dropdown">
-                  <CustomDropdown
-                    value={selectedModel}
-                    placeholder="Model"
-                    options={filteredModels}
-                    onSelect={(value) => {
-                      setSelectedModel(value as string);
-                      setSelectedFromYear("");
-                      setSelectedToYear("");
-                      setYearSearch("");
-                      setIsYearOpen(false);
-                    }}
-                    search={modelSearch}
-                    onSearchChange={setModelSearch}
-                    isOpen={isModelOpen}
-                    setIsOpen={setIsModelOpen}
-                    loading={loadingModels}
-                    disabled={!selectedMake}
-                  />
-                </div>
+            {/* Make and Model Dropdowns */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="make-dropdown">
+                <CustomDropdown
+                  value={selectedMake}
+                  placeholder="Make"
+                  options={filteredMakes}
+                  onSelect={(value) => {
+                    setSelectedMake(value as string);
+                    setSelectedModel("");
+                    setSelectedYearFrom("");
+                    setSelectedYearTo("");
+                    setModelSearch("");
+                    setYearFromSearch("");
+                    setYearToSearch("");
+                    setIsModelOpen(false);
+                    setIsYearFromOpen(false);
+                    setIsYearToOpen(false);
+                  }}
+                  search={makeSearch}
+                  onSearchChange={setMakeSearch}
+                  isOpen={isMakeOpen}
+                  setIsOpen={setIsMakeOpen}
+                  loading={loadingMakes}
+                />
               </div>
-
-              {/* Year From-To */}
-              <div className="flex gap-2 justify-between mt-1">
-                <div className="flex-1 year-dropdown">
-                  <CustomDropdown
-                    value={selectedFromYear ? selectedFromYear.toString() : ""}
-                    placeholder="Year From"
-                    options={filteredYears}
-                    onSelect={(value) => setSelectedFromYear(value as number)}
-                    search={yearSearch}
-                    onSearchChange={setYearSearch}
-                    isOpen={isYearOpen}
-                    setIsOpen={setIsYearOpen}
-                    disabled={!selectedModel}
-                  />
-                </div>
-                <div className="flex-1 year-dropdown">
-                  <CustomDropdown
-                    value={selectedToYear ? selectedToYear.toString() : ""}
-                    placeholder="Year To"
-                    options={filteredYears}
-                    onSelect={(value) => setSelectedToYear(value as number)}
-                    search={yearSearch}
-                    onSearchChange={setYearSearch}
-                    isOpen={isYearOpen}
-                    setIsOpen={setIsYearOpen}
-                    disabled={!selectedModel}
-                  />
-                </div>
+              
+              <div className="model-dropdown">
+                <CustomDropdown
+                  value={selectedModel}
+                  placeholder="Model"
+                  options={filteredModels}
+                  onSelect={(value) => {
+                    setSelectedModel(value as string);
+                    setSelectedYearFrom("");
+                    setSelectedYearTo("");
+                    setYearFromSearch("");
+                    setYearToSearch("");
+                    setIsYearFromOpen(false);
+                    setIsYearToOpen(false);
+                  }}
+                  search={modelSearch}
+                  onSearchChange={setModelSearch}
+                  isOpen={isModelOpen}
+                  setIsOpen={setIsModelOpen}
+                  loading={loadingModels}
+                  disabled={!selectedMake}
+                />
               </div>
             </div>
 
-            <button type="submit" className="w-full bg-black text-white py-3 rounded-2xl font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed" disabled={isSending}>
-              {isSending && <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>}
+            {/* Year Range Dropdowns */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="year-from-dropdown">
+                <CustomDropdown
+                  value={selectedYearFrom ? selectedYearFrom.toString() : ""}
+                  placeholder="From Year"
+                  options={years}
+                  onSelect={(value) => setSelectedYearFrom(value as number)}
+                  search={yearFromSearch}
+                  onSearchChange={setYearFromSearch}
+                  isOpen={isYearFromOpen}
+                  setIsOpen={setIsYearFromOpen}
+                  disabled={!selectedModel}
+                />
+              </div>
+              
+              <div className="year-to-dropdown">
+                <CustomDropdown
+                  value={selectedYearTo ? selectedYearTo.toString() : ""}
+                  placeholder="To Year"
+                  options={years}
+                  onSelect={(value) => setSelectedYearTo(value as number)}
+                  search={yearToSearch}
+                  onSearchChange={setYearToSearch}
+                  isOpen={isYearToOpen}
+                  setIsOpen={setIsYearToOpen}
+                  disabled={!selectedModel}
+                />
+              </div>
+            </div>
+
+            {/* Show selected year range */}
+            {(selectedYearFrom || selectedYearTo) && (
+              <div className="text-center text-sm text-gray-600">
+                Selected year range: 
+                <span className="font-semibold ml-1">
+                  {selectedYearFrom && selectedYearTo 
+                    ? `${selectedYearFrom} - ${selectedYearTo}`
+                    : selectedYearFrom 
+                      ? `From ${selectedYearFrom}`
+                      : `To ${selectedYearTo}`
+                  }
+                </span>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full bg-black text-white py-3 rounded-2xl font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+              disabled={isSending}
+            >
+              {isSending && (
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+              )}
               {isSending ? "Sending..." : "გაგზავნა"}
             </button>
           </form>
@@ -432,6 +523,7 @@ export default function HomeS1() {
             <p className="font-bold">რატომ Carlink-ი?</p>
             <ul className="list-disc pl-5 space-y-1 text-gray-700">
               <li>მრავალ-წლიანი გამოცდილება</li>
+              <li>6000+ კმაყოფილი მომხმარებელი</li>
               <li>პროფესიონალი ქარდილერები</li>
               <li>დაზღვეული ტრანსპორტირება</li>
             </ul>
@@ -439,8 +531,20 @@ export default function HomeS1() {
 
           {/* Contact Options */}
           <div className="mt-4 flex justify-between gap-4">
-            <a href="tel:+995544440506" className="flex-1 text-center py-2 bg-black text-white rounded-xl hover:bg-red-600 transition font-semibold">📞 Call</a>
-            <a href="https://www.facebook.com/profile.php?id=61583941749777" target="_blank" rel="noopener noreferrer" className="flex-1 text-center py-2 bg-black text-white rounded-xl hover:bg-red-500 transition font-semibold">💬 Messenger</a>
+            <a 
+              href="tel:+995544440506" 
+              className="flex-1 text-center py-2 bg-black text-white rounded-xl hover:bg-red-600 transition font-semibold"
+            >
+              📞 Call
+            </a>
+            <a 
+              href="https://www.facebook.com/profile.php?id=61583941749777" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex-1 text-center py-2 bg-black text-white rounded-xl hover:bg-red-500 transition font-semibold"
+            >
+              💬 Messenger
+            </a>
           </div>
         </div>
       </div>
