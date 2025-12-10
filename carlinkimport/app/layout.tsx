@@ -15,11 +15,17 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
   display: 'swap',
 });
-
 export const metadata = {
-  title: "CARLINK - ავტომობილების იმპორტი",
+  title: "CARLINK",
   description: "ავტომობილების იმპორტი ამერიკიდან და ჩინეთიდან",
-};
+  icons: {
+    icon: [
+      
+    
+      { url: "/logocarlink.webp", sizes: "512x512" },
+    ],
+  },
+};;
 
 export default function RootLayout({
   children,

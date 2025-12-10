@@ -1,7 +1,19 @@
+"use client";
 
-import { FaFacebookF, FaInstagram, FaFacebookMessenger } from "react-icons/fa";
+import React from "react";
+import { FaFacebookF, FaInstagram } from "react-icons/fa";
 
 export default function Footer() {
+  // Scroll function same as in Header
+  const scrollToSection = (id: string) => {
+    const section = document.getElementById(id);
+    if (section) {
+      const yOffset = -120; // same offset as header
+      const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  };
+
   return (
     <footer className="bg-[#24262b] pt-14 pb-10 text-gray-300">
       <div className="max-w-[1200px] mx-auto px-4">
@@ -9,9 +21,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {/* Company Info */}
           <div className="border-t border-gray-700 pt-4">
-            <h3 className="text-white font-semibold text-lg mb-4">
-              ჩვენს შესახებ
-            </h3>
+            <h3 className="text-white font-semibold text-lg mb-4">ჩვენს შესახებ</h3>
             <p className="text-gray-400 leading-6">
               ჩვენი გუნდი დაარსების დღიდან ინარჩუნებს, მომსახურებისა და
               კეთილისინდისიერბის უმაღლეს სტანდარტებს. გუნდი რომელსაც ნამდვილად
@@ -22,7 +32,7 @@ export default function Footer() {
             {/* Social Icons */}
             <div className="flex justify-center space-x-4 mt-8">
               <a
-                href="https://www.facebook.com/YourPage"
+                href="https://www.facebook.com/profile.php?id=61583941749777"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="h-10 w-10 flex items-center justify-center bg-white/20 rounded-full hover:bg-white hover:text-[#24262b] transition"
@@ -38,15 +48,6 @@ export default function Footer() {
               >
                 <FaInstagram />
               </a>
-
-              <a
-                href="https://m.me/YourPage" // Messenger link
-                target="_blank"
-                rel="noopener noreferrer"
-                className="h-10 w-10 flex items-center justify-center bg-white/20 rounded-full hover:bg-white hover:text-[#24262b] transition"
-              >
-                <FaFacebookMessenger />
-              </a>
             </div>
           </div>
 
@@ -55,24 +56,36 @@ export default function Footer() {
             <h3 className="text-white font-semibold text-lg mb-4">ლინკები</h3>
             <ul className="space-y-3">
               <li>
-                <a className="hover:text-white transition cursor-pointer">
+                <button
+                  onClick={() => scrollToSection("home")}
+                  className="hover:text-white transition cursor-pointer"
+                >
                   მთავარი
-                </a>
+                </button>
               </li>
               <li>
-                <a className="hover:text-white transition cursor-pointer">
+                <button
+                  onClick={() => scrollToSection("aboutus")}
+                  className="hover:text-white transition cursor-pointer"
+                >
                   ჩვენს შესახებ
-                </a>
+                </button>
               </li>
               <li>
-                <a className="hover:text-white transition cursor-pointer">
+                <button
+                  onClick={() => scrollToSection("services")}
+                  className="hover:text-white transition cursor-pointer"
+                >
                   სერვისები
-                </a>
+                </button>
               </li>
               <li>
-                <a className="hover:text-white transition cursor-pointer">
+                <button
+                  onClick={() => scrollToSection("calculator")}
+                  className="hover:text-white transition cursor-pointer"
+                >
                   კალკულატორი
-                </a>
+                </button>
               </li>
             </ul>
           </div>

@@ -18,25 +18,26 @@ export default function HomeS3() {
       <div className="max-w-[1220px] w-full m-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-10">
         
         {/* Card 1 */}
-        <div className="flex justify-center">
-          <CardContainer className="inter-var cursor-pointer w-full">
-            <CardBody className="relative group/card dark:bg-black rounded-xl p-6">
-              <CardItem translateZ="50" className="text-xl font-bold text-white mb-2">
-                უსაფრთხო ტრანსპორტირება
-              </CardItem>
+        {/* Card 1 */}
+<div className="flex justify-center w-full md:w-108">
+  <CardContainer className="inter-var cursor-pointer w-full">
+    <CardBody className="relative group/card dark:bg-black rounded-xl p-6">
+      <CardItem translateZ="50" className="text-xl font-bold text-white mb-2">
+        უსაფრთხო ტრანსპორტირება
+      </CardItem>
 
-              <CardItem translateZ="100" rotateX={20} rotateZ={-10} className="w-full mt-4">
-                <Image
-                  src="/1.jpg"
-                  alt="Safe Transportation"
-                  width={500}
-                  height={400}
-                  className="w-full h-60 object-cover rounded-xl"
-                />
-              </CardItem>
-            </CardBody>
-          </CardContainer>
-        </div>
+      <CardItem translateZ="100" rotateX={20} rotateZ={-10} className="w-full mt-4">
+        <Image
+          src="/1.jpg"
+          alt="Safe Transportation"
+          width={500}
+          height={400}
+          className="w-full h-60 object-cover rounded-xl"
+        />
+      </CardItem>
+    </CardBody>
+  </CardContainer>
+</div>
 
         {/* Card 2 */}
         <div className="flex justify-center">
