@@ -29,7 +29,7 @@ export default function Header() {
         <Link href="/">
     <Image
       src="/carlinkfooter.webp"
-      width={120}
+      width={140}
       height={87}
       alt="Carlink Logo"
       className="mt-3 cursor-pointer" // optional cursor change

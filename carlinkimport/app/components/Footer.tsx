@@ -96,7 +96,10 @@ export default function Footer() {
               საკონტაქტო ინფორმაცია
             </h3>
             <ul className="space-y-3">
+              <div className="flex gap-1.5">
               <li>📞 0322 197 955</li>
+              <li> | 568 674 474</li>
+              </div>
               <li>📧 Carlinkautoimport@gmail.com</li>
               <li>📍 Tbilisi ფარნავაზ მეფის 43 ნ</li>
               <li>⏰ სამუშაო საათები: 10:00 - 19:00</li>
