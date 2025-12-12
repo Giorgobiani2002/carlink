@@ -269,19 +269,21 @@ export default function HomeS1() {
       <ToastContainer position="top-right" autoClose={5000} theme="colored" />
 
       <div className="absolute inset-0 w-full h-full">
-        <video
-          src="/tiktok.mp4"
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          onLoadedData={() => setVideoLoaded(true)}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
-            videoLoaded ? "opacity-100" : "opacity-0"
-          }`}
-        />
-      </div>
+      
+  <video
+    src="/tiktok.mp4"
+    autoPlay
+    loop
+    muted
+    playsInline
+    preload="auto"
+   
+   
+    className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
+    
+  />
+</div>
+    
 
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
         <Image 
