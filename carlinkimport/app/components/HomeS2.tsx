@@ -66,7 +66,7 @@ export default function HomeS2() {
         {/* GLOBE SECTION */}
         <div
           id="globe-container"
-          className="md:w-full md:h-[500px] w-[350px] h-[400px] m-auto"
+          className="md:w-full md:h-[500px] w-[350px] mt-[41px] md:mt-0 h-[400px] m-auto"
         >
           {showGlobe && <World globeConfig={globeConfig} data={arcsData} />}
         </div>
