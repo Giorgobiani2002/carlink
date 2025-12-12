@@ -55,11 +55,13 @@ export default function HomeS1() {
   const [loadingMakes, setLoadingMakes] = useState(false);
   const [loadingModels, setLoadingModels] = useState(false);
 
+
+
+
   // Fetch popular makes initially
   useEffect(() => {
-    // Start with popular makes for instant display
     const popularMakes: CarOption[] = [
-      "Toyota", "Honda", "Ford", "Chevrolet", "BMW", 
+      "Toyota", "Honda", "Ford", "Chevrolet", "BMW",
       "Mercedes-Benz", "Audi", "Nissan", "Hyundai", "Kia",
       "Volkswagen", "Tesla", "Lexus", "Jeep", "Subaru",
       "Mazda", "Volvo", "Porsche", "Land Rover", "Jaguar",
@@ -67,28 +69,40 @@ export default function HomeS1() {
       "RAM", "Lincoln", "Acura", "Infiniti", "Mini",
       "Mitsubishi", "Fiat", "Alfa Romeo", "Genesis", "Smart"
     ].map(make => ({ value: make, label: make }));
-    
+  
+    // Show popular makes instantly (before fetch)
     setMakes(popularMakes);
-    
+  
     // Fetch all makes in background
     setLoadingMakes(true);
-    fetch("https://vpic.nhtsa.dot.gov/api/vehicles/getallmakes?format=json")
+    fetch("https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/car?format=json")
       .then(res => res.json())
       .then(data => {
-        // Combine popular with all makes, remove duplicates
         const allMakes = data.Results.map((item: MakeResult) => item.Make_Name);
-        const uniqueMakes = [...new Set([...popularMakes.map(m => m.value as string), ...allMakes])];
-        const sortedMakes = uniqueMakes.sort((a: string, b: string) => a.localeCompare(b));
-        setMakes(sortedMakes.map(make => ({ value: make, label: make })));
+  
+        // Merge popular first + all makes
+        const unique = [...new Set([...popularMakes.map(x => x.value), ...allMakes])];
+  
+        const sorted = unique.sort((a, b) => a.localeCompare(b));
+  
+        setMakes(sorted.map(make => ({ value: make, label: make })));
       })
-      .catch(err => console.log("Error fetching makes:", err))
       .finally(() => setLoadingMakes(false));
   }, []);
-
   // Filter makes based on search
-  const filteredMakes = makes.filter(make => 
-    make.label.toLowerCase().includes(makeSearch.toLowerCase())
-  ).slice(0, 100); // Limit to 100 for performance
+  const filteredMakes = makeSearch
+  ? makes
+      .filter(make => {
+        const label = make?.label ?? ""; // safe fallback
+
+        // ensure label is a string
+        if (typeof label !== "string") return false;
+        if (!makeSearch) return true;
+
+        return label.toLowerCase().includes(makeSearch.toLowerCase());
+      })
+      .slice(0, 100)
+  : makes.slice(0, 50);
 
   // Filter models based on search
   const filteredModels = models.filter(model => 
@@ -290,9 +304,10 @@ export default function HomeS1() {
               ) : options.length === 0 ? (
                 <div className="px-3 py-2 text-center text-gray-500">No {placeholder.toLowerCase()} found</div>
               ) : (
-                options.map((option) => (
+                options.map((option,index) => (
                   <button
-                    key={option.value}
+                  key={`${option.value}-${option.label}-${index}`}
+
                     type="button"
                     className="w-full px-3 py-2 text-left hover:bg-gray-100 transition-colors"
                     onClick={() => {
@@ -317,23 +332,25 @@ export default function HomeS1() {
       <ToastContainer position="top-right" autoClose={5000} theme="colored" />
 
       {/* Background */}
-      <Image 
-        src="/lambo.png" 
-        alt="Car Thumbnail" 
-        fill 
-        priority 
-        className={`object-cover transition-opacity duration-700 ${videoLoaded ? "opacity-0" : "opacity-100"}`} 
-      />
-      <video
-        src="/lambo.mp4"
-        autoPlay 
-        loop 
-        muted 
-        playsInline 
-        preload="auto"
-        onLoadedData={() => setVideoLoaded(true)}
-        className={`w-full h-full object-cover absolute inset-0 transition-opacity duration-700 ${videoLoaded ? "opacity-100" : "opacity-0"}`}
-      />
+      <div className="absolute inset-0 w-full h-full">
+
+  {/* Desktop Video */}
+  <video
+    src="/tiktok.mp4"
+    autoPlay
+    loop
+    muted
+    playsInline
+    preload="auto"
+    onLoadedData={() => setVideoLoaded(true)}
+    className={` absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
+      videoLoaded ? "opacity-100" : "opacity-0"
+    }`}
+  />
+
+  
+
+</div>
 
       {/* Text Overlay */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
@@ -356,12 +373,12 @@ export default function HomeS1() {
       <div className="fixed right-5 bottom-20 z-50">
         <button 
           onClick={() => setIsOpen(true)} 
-          className="relative w-16 h-16 rounded-full bg-black flex items-center justify-center shadow-lg hover:bg-gray-800 transition duration-300 group" 
+          className="relative w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-lg hover:bg-gray-800 transition duration-300 group" 
           title="Contact us"
         >
           <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-50 animate-ping"></span>
           <img 
-            src="/carlinkfooter.webp" 
+            src="/carlinkpng2.png" 
             alt="Contact" 
             className="relative w-20 h-20 rounded-full transition-transform duration-300 hover:scale-125 cursor-pointer" 
           />
@@ -386,7 +403,7 @@ export default function HomeS1() {
           {/* Modal Content */}
           <h2 className="text-red-900 text-2xl font-bold mb-4 text-center">🚘 მანქანის შერჩევა</h2>
           <p className="mb-6 text-gray-700 text-center">
-            მე დაგეხმარები შენთვის სასურველი მანქანის შერჩევასა და ჩამოყვანაში. შეავსე ფორმა და ძალიან მალე დაგიკავშირდები
+            დაგვიტოვე საკონტაქტო, ჩვენი პროფესიონალი მენეჯერები მალე დაგიკავშირდებიან.
           </p>
 
           {/* Form */}
@@ -523,7 +540,6 @@ export default function HomeS1() {
             <p className="font-bold">რატომ Carlink-ი?</p>
             <ul className="list-disc pl-5 space-y-1 text-gray-700">
               <li>მრავალ-წლიანი გამოცდილება</li>
-              <li>6000+ კმაყოფილი მომხმარებელი</li>
               <li>პროფესიონალი ქარდილერები</li>
               <li>დაზღვეული ტრანსპორტირება</li>
             </ul>
