@@ -26,15 +26,15 @@ export default function Header() {
     <header className="bg-black py-4 shadow-md sticky top-0 z-50">
       <nav className="max-w-[1220px] max-h-[81px] m-auto w-full px-4 md:px-6 font-serif text-[18px] flex justify-between items-center">
         {/* Logo */}
-        <div className="flex items-center">
-          <Image
-            src={"/carlinkfooter.webp"}
-            width={120}
-            height={87}
-            alt="Carlink Logo"
-            className="mt-3"
-          />
-        </div>
+        <Link href="/">
+    <Image
+      src="/carlinkfooter.webp"
+      width={120}
+      height={87}
+      alt="Carlink Logo"
+      className="mt-3 cursor-pointer" // optional cursor change
+    />
+  </Link>
 
         {/* Desktop Navigation */}
         <ul className="hidden md:flex max-w-[700px] w-full justify-between text-white gap-6">
