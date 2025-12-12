@@ -1,135 +1,110 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { send } from "@emailjs/browser";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
-// Define types
-interface CarOption {
-  value: string | number;
-  label: string;
-}
-
-interface MakeResult {
-  Make_Name: string;
-}
-
-interface ModelResult {
-  Model_Name: string;
-}
-
-interface ApiResponse {
-  Results: ModelResult[];
-}
+// Static car database - no API needed!
+const CAR_DATABASE: Record<string, string[]> = {
+  "Acura": ["ILX", "Integra", "MDX", "NSX", "RDX", "RLX", "TLX", "TSX", "ZDX"],
+  "Alfa Romeo": ["4C", "Giulia", "Stelvio", "Tonale"],
+  "Audi": ["A3", "A4", "A5", "A6", "A7", "A8", "Q3", "Q5", "Q7", "Q8", "e-tron", "R8", "RS3", "RS5", "RS6", "RS7", "S3", "S4", "S5", "S6", "S7", "S8", "TT"],
+  "BMW": ["1 Series", "2 Series", "3 Series", "4 Series", "5 Series", "6 Series", "7 Series", "8 Series", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "Z4", "i3", "i4", "i7", "iX", "M2", "M3", "M4", "M5", "M8"],
+  "Buick": ["Enclave", "Encore", "Envision", "LaCrosse", "Regal"],
+  "Cadillac": ["ATS", "CT4", "CT5", "CT6", "CTS", "Escalade", "Lyriq", "SRX", "XT4", "XT5", "XT6", "XTS"],
+  "Chevrolet": ["Blazer", "Bolt", "Camaro", "Captiva", "Colorado", "Corvette", "Cruze", "Equinox", "Express", "Impala", "Malibu", "Silverado 1500", "Silverado 2500HD", "Silverado 3500HD", "Spark", "Suburban", "Tahoe", "Trailblazer", "Traverse", "Trax"],
+  "Chrysler": ["200", "300", "Pacifica", "Town & Country", "Voyager"],
+  "Dodge": ["Challenger", "Charger", "Durango", "Grand Caravan", "Hornet", "Journey", "Ram 1500", "Ram 2500", "Ram 3500"],
+  "Ferrari": ["296 GTB", "812", "F8", "Portofino", "Roma", "SF90"],
+  "Fiat": ["500", "500L", "500X", "124 Spider"],
+  "Ford": ["Bronco", "Bronco Sport", "Edge", "Escape", "Expedition", "Explorer", "F-150", "F-250", "F-350", "Fiesta", "Flex", "Fusion", "Maverick", "Mustang", "Mustang Mach-E", "Ranger", "Super Duty", "Taurus", "Transit"],
+  "Genesis": ["G70", "G80", "G90", "GV60", "GV70", "GV80"],
+  "GMC": ["Acadia", "Canyon", "Sierra 1500", "Sierra 2500HD", "Sierra 3500HD", "Terrain", "Yukon", "Yukon XL"],
+  "Honda": ["Accord", "Civic", "CR-V", "CR-Z", "Fit", "HR-V", "Insight", "Odyssey", "Passport", "Pilot", "Ridgeline"],
+  "Hyundai": ["Accent", "Elantra", "Genesis", "Ioniq 5", "Ioniq 6", "Kona", "Nexo", "Palisade", "Santa Cruz", "Santa Fe", "Sonata", "Tucson", "Veloster", "Venue"],
+  "Infiniti": ["Q50", "Q60", "Q70", "QX30", "QX50", "QX55", "QX60", "QX80"],
+  "Jaguar": ["E-PACE", "F-PACE", "F-TYPE", "I-PACE", "XE", "XF", "XJ"],
+  "Jeep": ["Cherokee", "Compass", "Gladiator", "Grand Cherokee", "Grand Wagoneer", "Renegade", "Wagoneer", "Wrangler"],
+  "Kia": ["Carnival", "Forte", "K5", "Niro", "Optima", "Rio", "Sedona", "Seltos", "Sorento", "Soul", "Sportage", "Stinger", "Telluride"],
+  "Lamborghini": ["Aventador", "Huracan", "Urus"],
+  "Land Rover": ["Defender", "Discovery", "Discovery Sport", "Range Rover", "Range Rover Evoque", "Range Rover Sport", "Range Rover Velar"],
+  "Lexus": ["ES", "GS", "GX", "IS", "LC", "LS", "LX", "NX", "RC", "RX", "RZ", "UX"],
+  "Lincoln": ["Aviator", "Corsair", "MKC", "MKT", "MKX", "MKZ", "Nautilus", "Navigator"],
+  "Maserati": ["Ghibli", "GranTurismo", "Grecale", "Levante", "MC20", "Quattroporte"],
+  "Mazda": ["CX-3", "CX-30", "CX-5", "CX-50", "CX-9", "CX-90", "Mazda3", "Mazda6", "MX-5 Miata"],
+  "Mercedes-Benz": ["A-Class", "C-Class", "CLA", "CLS", "E-Class", "EQB", "EQE", "EQS", "G-Class", "GLA", "GLB", "GLC", "GLE", "GLS", "S-Class", "SL", "SLC"],
+  "Mini": ["Clubman", "Convertible", "Countryman", "Hardtop", "Paceman"],
+  "Mitsubishi": ["Eclipse Cross", "Mirage", "Outlander", "Outlander PHEV", "Outlander Sport"],
+  "Nissan": ["370Z", "Altima", "Armada", "Frontier", "GT-R", "Kicks", "Leaf", "Maxima", "Murano", "Pathfinder", "Rogue", "Rogue Sport", "Sentra", "Titan", "Versa", "Z"],
+  "Porsche": ["911", "718 Boxster", "718 Cayman", "Cayenne", "Macan", "Panamera", "Taycan"],
+  "RAM": ["1500", "2500", "3500", "ProMaster"],
+  "Subaru": ["Ascent", "BRZ", "Crosstrek", "Forester", "Impreza", "Legacy", "Outback", "Solterra", "WRX"],
+  "Tesla": ["Model 3", "Model S", "Model X", "Model Y", "Cybertruck"],
+  "Toyota": ["4Runner", "Avalon", "bZ4X", "C-HR", "Camry", "Corolla", "Corolla Cross", "Crown", "GR Supra", "GR86", "Highlander", "Land Cruiser", "Mirai", "Prius", "RAV4", "Sequoia", "Sienna", "Tacoma", "Tundra", "Venza"],
+  "Volkswagen": ["Arteon", "Atlas", "Atlas Cross Sport", "Golf", "Golf GTI", "ID.4", "Jetta", "Passat", "Taos", "Tiguan"],
+  "Volvo": ["S60", "S90", "V60", "V90", "XC40", "XC60", "XC90"]
+};
 
 export default function HomeS1() {
   const [isOpen, setIsOpen] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [isSending, setIsSending] = useState(false);
 
-  // Car selection states
-  const [makes, setMakes] = useState<CarOption[]>([]);
-  const [models, setModels] = useState<CarOption[]>([]);
-  const [years, setYears] = useState<CarOption[]>([]);
-
   const [selectedMake, setSelectedMake] = useState("");
   const [selectedModel, setSelectedModel] = useState("");
   const [selectedYearFrom, setSelectedYearFrom] = useState<number | "">("");
   const [selectedYearTo, setSelectedYearTo] = useState<number | "">("");
 
-  // Search states
   const [makeSearch, setMakeSearch] = useState("");
   const [modelSearch, setModelSearch] = useState("");
   const [yearFromSearch, setYearFromSearch] = useState("");
   const [yearToSearch, setYearToSearch] = useState("");
 
-  // Dropdown open states
   const [isMakeOpen, setIsMakeOpen] = useState(false);
   const [isModelOpen, setIsModelOpen] = useState(false);
   const [isYearFromOpen, setIsYearFromOpen] = useState(false);
   const [isYearToOpen, setIsYearToOpen] = useState(false);
 
-  // Loading states
-  const [loadingMakes, setLoadingMakes] = useState(false);
-  const [loadingModels, setLoadingModels] = useState(false);
+  // Get all makes from database
+  const allMakes = useMemo(() => Object.keys(CAR_DATABASE).sort(), []);
 
+  // Get models for selected make
+  const allModels = useMemo(() => {
+    if (!selectedMake) return [];
+    return CAR_DATABASE[selectedMake] || [];
+  }, [selectedMake]);
 
+  // Filtered makes
+  const filteredMakes = useMemo(() => {
+    if (!makeSearch) return allMakes;
+    const search = makeSearch.toLowerCase();
+    return allMakes.filter(make => make.toLowerCase().includes(search));
+  }, [allMakes, makeSearch]);
 
+  // Filtered models
+  const filteredModels = useMemo(() => {
+    if (!modelSearch) return allModels;
+    const search = modelSearch.toLowerCase();
+    return allModels.filter(model => model.toLowerCase().includes(search));
+  }, [allModels, modelSearch]);
 
-  // Fetch popular makes initially
-  useEffect(() => {
-    const popularMakes: CarOption[] = [
-      "Toyota", "Honda", "Ford", "Chevrolet", "BMW",
-      "Mercedes-Benz", "Audi", "Nissan", "Hyundai", "Kia",
-      "Volkswagen", "Tesla", "Lexus", "Jeep", "Subaru",
-      "Mazda", "Volvo", "Porsche", "Land Rover", "Jaguar",
-      "Cadillac", "GMC", "Buick", "Chrysler", "Dodge",
-      "RAM", "Lincoln", "Acura", "Infiniti", "Mini",
-      "Mitsubishi", "Fiat", "Alfa Romeo", "Genesis", "Smart"
-    ].map(make => ({ value: make, label: make }));
-  
-    // Show popular makes instantly (before fetch)
-    setMakes(popularMakes);
-  
-    // Fetch all makes in background
-    setLoadingMakes(true);
-    fetch("https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/car?format=json")
-      .then(res => res.json())
-      .then(data => {
-        const allMakes = data.Results.map((item: MakeResult) => item.Make_Name);
-  
-        // Merge popular first + all makes
-        const unique = [...new Set([...popularMakes.map(x => x.value), ...allMakes])];
-  
-        const sorted = unique.sort((a, b) => a.localeCompare(b));
-  
-        setMakes(sorted.map(make => ({ value: make, label: make })));
-      })
-      .finally(() => setLoadingMakes(false));
-  }, []);
-  // Filter makes based on search
-  const filteredMakes = makeSearch
-  ? makes
-      .filter(make => {
-        const label = make?.label ?? ""; // safe fallback
-
-        // ensure label is a string
-        if (typeof label !== "string") return false;
-        if (!makeSearch) return true;
-
-        return label.toLowerCase().includes(makeSearch.toLowerCase());
-      })
-      .slice(0, 100)
-  : makes.slice(0, 50);
-
-  // Filter models based on search
-  const filteredModels = models.filter(model => 
-    model.label.toLowerCase().includes(modelSearch.toLowerCase())
-  ).slice(0, 100);
-
-  // Generate years when model changes
-  useEffect(() => {
-    if (!selectedMake || !selectedModel) {
-      setYears([]);
-      setSelectedYearFrom("");
-      setSelectedYearTo("");
-      setYearFromSearch("");
-      setYearToSearch("");
-      return;
-    }
+  // Generate years array
+  const allYears = useMemo(() => {
     const currentYear = new Date().getFullYear();
-    const yearsArray = Array.from({ length: 40 }, (_, i) => currentYear - i); // Last 40 years
-    setYears(yearsArray.map(year => ({ value: year, label: year.toString() })));
-    setYearFromSearch("");
-    setYearToSearch("");
-  }, [selectedMake, selectedModel]);
+    return Array.from({ length: 40 }, (_, i) => currentYear - i);
+  }, []);
 
-  // Filter years based on search
-  const filteredYears = years.filter(year => 
-    year.label.includes(yearFromSearch) || year.label.includes(yearToSearch)
-  );
+  const filteredYearsFrom = useMemo(() => {
+    if (!yearFromSearch) return allYears;
+    return allYears.filter(year => year.toString().includes(yearFromSearch));
+  }, [allYears, yearFromSearch]);
+
+  const filteredYearsTo = useMemo(() => {
+    if (!yearToSearch) return allYears;
+    return allYears.filter(year => year.toString().includes(yearToSearch));
+  }, [allYears, yearToSearch]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -146,7 +121,7 @@ export default function HomeS1() {
   }, []);
 
   // Form submit handler
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     const name = (form.elements.namedItem("name") as HTMLInputElement).value.trim();
@@ -157,7 +132,6 @@ export default function HomeS1() {
       return;
     }
 
-    // Validate year range
     if (selectedYearFrom && selectedYearTo && selectedYearFrom > selectedYearTo) {
       toast.error("წელი 'დან' არ უნდა იყოს მეტი ვიდრე წელი 'მდე'!");
       return;
@@ -165,7 +139,6 @@ export default function HomeS1() {
 
     setIsSending(true);
 
-    // Create year range string
     const yearRange = selectedYearFrom && selectedYearTo 
       ? `${selectedYearFrom}-${selectedYearTo}`
       : selectedYearFrom 
@@ -180,8 +153,8 @@ export default function HomeS1() {
       { 
         name, 
         phone, 
-        make: selectedMake, 
-        model: selectedModel, 
+        make: selectedMake || "Not specified", 
+        model: selectedModel || "Not specified", 
         year: yearRange || "Not specified"
       },
       "zkuga8Pi8HVdc2H_N"
@@ -207,39 +180,9 @@ export default function HomeS1() {
         toast.error("მესიჯი არ გაიგზავნა. ხარვეზი: " + err.text);
       })
       .finally(() => setIsSending(false));
-  };
+  }, [selectedMake, selectedModel, selectedYearFrom, selectedYearTo]);
 
-  // Fetch models when make changes
-  useEffect(() => {
-    if (!selectedMake) {
-      setModels([]);
-      setSelectedModel("");
-      return;
-    }
-    
-    setLoadingModels(true);
-    fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/${selectedMake}?format=json`)
-      .then(res => res.json())
-      .then((data: ApiResponse) => {
-        if (data.Results && data.Results.length > 0) {
-          const modelNames = data.Results.map((item: ModelResult) => item.Model_Name);
-          const uniqueModels = [...new Set(modelNames)];
-          const sortedModels = uniqueModels.sort((a: string, b: string) => a.localeCompare(b));
-          setModels(sortedModels.map(model => ({ value: model, label: model })));
-        } else {
-          setModels([]);
-        }
-        setSelectedModel("");
-        setModelSearch("");
-      })
-      .catch(err => {
-        console.log("Error fetching models:", err);
-        toast.error("Failed to load models");
-      })
-      .finally(() => setLoadingModels(false));
-  }, [selectedMake]);
-
-  // Custom Dropdown Component
+  // Dropdown Component
   const CustomDropdown = ({ 
     value, 
     placeholder, 
@@ -249,19 +192,17 @@ export default function HomeS1() {
     onSearchChange,
     isOpen,
     setIsOpen,
-    loading = false,
     disabled = false,
     className = ""
   }: {
     value: string;
     placeholder: string;
-    options: CarOption[];
+    options: (string | number)[];
     onSelect: (value: string | number) => void;
     search: string;
     onSearchChange: (value: string) => void;
     isOpen: boolean;
     setIsOpen: (open: boolean) => void;
-    loading?: boolean;
     disabled?: boolean;
     className?: string;
   }) => {
@@ -279,7 +220,7 @@ export default function HomeS1() {
           <span className={value ? "text-black" : "text-gray-400 truncate"}>
             {value || placeholder}
           </span>
-          <span className={`text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`}>
+          <span className={`text-gray-500 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}>
             ▼
           </span>
         </button>
@@ -296,27 +237,23 @@ export default function HomeS1() {
             />
             
             <div className="overflow-y-auto max-h-48">
-              {loading ? (
+              {options.length === 0 ? (
                 <div className="px-3 py-2 text-center text-gray-500">
-                  <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-red-600"></div>
-                  <span className="ml-2">Loading...</span>
+                  {search ? `No ${placeholder.toLowerCase()} found` : `No ${placeholder.toLowerCase()} available`}
                 </div>
-              ) : options.length === 0 ? (
-                <div className="px-3 py-2 text-center text-gray-500">No {placeholder.toLowerCase()} found</div>
               ) : (
-                options.map((option,index) => (
+                options.map((option, index) => (
                   <button
-                  key={`${option.value}-${option.label}-${index}`}
-
+                    key={`${option}-${index}`}
                     type="button"
-                    className="w-full px-3 py-2 text-left hover:bg-gray-100 transition-colors"
+                    className="w-full px-3 py-2 text-left hover:bg-gray-100 transition-colors text-sm"
                     onClick={() => {
-                      onSelect(option.value);
+                      onSelect(option);
                       setIsOpen(false);
                       onSearchChange("");
                     }}
                   >
-                    {option.label}
+                    {option}
                   </button>
                 ))
               )}
@@ -331,28 +268,21 @@ export default function HomeS1() {
     <div id="home" className="relative w-full h-screen">
       <ToastContainer position="top-right" autoClose={5000} theme="colored" />
 
-      {/* Background */}
       <div className="absolute inset-0 w-full h-full">
+        <video
+          src="/tiktok.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          onLoadedData={() => setVideoLoaded(true)}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
+            videoLoaded ? "opacity-100" : "opacity-0"
+          }`}
+        />
+      </div>
 
-  {/* Desktop Video */}
-  <video
-    src="/tiktok.mp4"
-    autoPlay
-    loop
-    muted
-    playsInline
-    preload="auto"
-    onLoadedData={() => setVideoLoaded(true)}
-    className={` absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
-      videoLoaded ? "opacity-100" : "opacity-0"
-    }`}
-  />
-
-  
-
-</div>
-
-      {/* Text Overlay */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
         <Image 
           src="/carlinkfooter.webp" 
@@ -369,7 +299,6 @@ export default function HomeS1() {
         </Link>
       </div>
 
-      {/* Floating Contact Button */}
       <div className="fixed right-5 bottom-20 z-50">
         <button 
           onClick={() => setIsOpen(true)} 
@@ -385,14 +314,12 @@ export default function HomeS1() {
         </button>
       </div>
 
-      {/* Modal */}
       <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 transition-opacity duration-300 ease-out ${
         isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
       }`}>
         <div className={`bg-white rounded-2xl w-full max-w-md p-6 relative transform transition-all duration-300 ease-out ${
           isOpen ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-90 translate-y-4"
         }`}>
-          {/* Close */}
           <button 
             onClick={() => setIsOpen(false)} 
             className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-xl"
@@ -400,13 +327,11 @@ export default function HomeS1() {
             &times;
           </button>
 
-          {/* Modal Content */}
           <h2 className="text-red-900 text-2xl font-bold mb-4 text-center">🚘 მანქანის შერჩევა</h2>
           <p className="mb-6 text-gray-700 text-center">
             დაგვიტოვე საკონტაქტო, ჩვენი პროფესიონალი მენეჯერები მალე დაგიკავშირდებიან.
           </p>
 
-          {/* Form */}
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <input
               type="text"
@@ -423,7 +348,6 @@ export default function HomeS1() {
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-700"
             />
 
-            {/* Make and Model Dropdowns */}
             <div className="grid grid-cols-2 gap-2">
               <div className="make-dropdown">
                 <CustomDropdown
@@ -435,18 +359,11 @@ export default function HomeS1() {
                     setSelectedModel("");
                     setSelectedYearFrom("");
                     setSelectedYearTo("");
-                    setModelSearch("");
-                    setYearFromSearch("");
-                    setYearToSearch("");
-                    setIsModelOpen(false);
-                    setIsYearFromOpen(false);
-                    setIsYearToOpen(false);
                   }}
                   search={makeSearch}
                   onSearchChange={setMakeSearch}
                   isOpen={isMakeOpen}
                   setIsOpen={setIsMakeOpen}
-                  loading={loadingMakes}
                 />
               </div>
               
@@ -459,28 +376,22 @@ export default function HomeS1() {
                     setSelectedModel(value as string);
                     setSelectedYearFrom("");
                     setSelectedYearTo("");
-                    setYearFromSearch("");
-                    setYearToSearch("");
-                    setIsYearFromOpen(false);
-                    setIsYearToOpen(false);
                   }}
                   search={modelSearch}
                   onSearchChange={setModelSearch}
                   isOpen={isModelOpen}
                   setIsOpen={setIsModelOpen}
-                  loading={loadingModels}
                   disabled={!selectedMake}
                 />
               </div>
             </div>
 
-            {/* Year Range Dropdowns */}
             <div className="grid grid-cols-2 gap-2">
               <div className="year-from-dropdown">
                 <CustomDropdown
                   value={selectedYearFrom ? selectedYearFrom.toString() : ""}
                   placeholder="From Year"
-                  options={years}
+                  options={filteredYearsFrom}
                   onSelect={(value) => setSelectedYearFrom(value as number)}
                   search={yearFromSearch}
                   onSearchChange={setYearFromSearch}
@@ -494,7 +405,7 @@ export default function HomeS1() {
                 <CustomDropdown
                   value={selectedYearTo ? selectedYearTo.toString() : ""}
                   placeholder="To Year"
-                  options={years}
+                  options={filteredYearsTo}
                   onSelect={(value) => setSelectedYearTo(value as number)}
                   search={yearToSearch}
                   onSearchChange={setYearToSearch}
@@ -505,7 +416,6 @@ export default function HomeS1() {
               </div>
             </div>
 
-            {/* Show selected year range */}
             {(selectedYearFrom || selectedYearTo) && (
               <div className="text-center text-sm text-gray-600">
                 Selected year range: 
@@ -535,7 +445,6 @@ export default function HomeS1() {
             </button>
           </form>
 
-          {/* Optional Info */}
           <div className="mt-6 text-black space-y-2">
             <p className="font-bold">რატომ Carlink-ი?</p>
             <ul className="list-disc pl-5 space-y-1 text-gray-700">
@@ -545,7 +454,6 @@ export default function HomeS1() {
             </ul>
           </div>
 
-          {/* Contact Options */}
           <div className="mt-4 flex justify-between gap-4">
             <a 
               href="tel:+995544440506" 
