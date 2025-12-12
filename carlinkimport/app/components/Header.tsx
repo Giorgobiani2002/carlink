@@ -84,9 +84,15 @@ export default function Header() {
         <div className="hidden md:flex gap-2.5 items-center">
           <Phone size={26} className="text-red-800" />
           <div className="text-white text-right">
-            <h4 className="text-sm font-semibold">დაგვირეკე</h4>
-            <span className="text-base font-bold text-red-800">0322197955</span>
-          </div>
+          <div className="text-white text-right">
+  <h4 className="text-sm font-semibold">დაგვიკავშირდით</h4>
+  <span className="font-bold text-red-800 font-mono text-lg tabular-nums">
+    0322197955
+  </span>
+</div>
+
+</div>
+
         </div>
 
         {/* Mobile Menu Icon */}
