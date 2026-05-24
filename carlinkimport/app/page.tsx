@@ -20,14 +20,14 @@ import {
   Truck,
   X,
 } from "lucide-react";
+import { ToastContainer, toast } from "react-toastify";
 import { FeaturedVehicle } from "./lib/calculator";
 import { fetchPublicVehicles, hasSupabaseConfig } from "./lib/supabase-rest";
-import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const steps = [
   { title: "შერჩევა", text: "ვპოულობთ მანქანას Copart, IAAI ან პარტნიორ ბაზებზე.", icon: Search },
-  { title: "აუქციონი", text: "ვამოწმებთ title-ს, დაზიანებას, ისტორიას და ბიუჯეტს.", icon: BadgeCheck },
+  { title: "შემოწმება", text: "ვამოწმებთ title-ს, დაზიანებას, ისტორიას და ბიუჯეტს.", icon: BadgeCheck },
   { title: "ტრანსპორტი", text: "ვგეგმავთ yard pickup-ს, პორტს და საზღვაო გადაზიდვას.", icon: Truck },
   { title: "ჩაბარება", text: "გეხმარებით საბუთებში, განბაჟებაში და საბოლოო მიწოდებაში.", icon: FileCheck2 },
 ];
@@ -42,10 +42,22 @@ const services = [
 ];
 
 const faq = [
-  ["რა შედის კალკულატორის ფასში?", "Bid, აუქციონის fee, inland transport, ocean shipping, service fee და არჩეული დამატებითი სერვისები."],
-  ["რამდენი დრო სჭირდება ჩამოყვანას?", "საშუალოდ 6-10 კვირა, რაც დამოკიდებულია yard-ზე, პორტზე და გემის schedule-ზე."],
-  ["დაზიანებულ მანქანასაც ამოწმებთ?", "დიახ, ვამოწმებთ ფოტოების, title status-ის და რისკების დონეს, სანამ აუქციონზე შევალთ."],
-  ["შემიძლია კონკრეტული მანქანის მოძებნა?", "დიახ, დაგვიტოვეთ სასურველი მარკა, მოდელი, წელი და ბიუჯეტი, გუნდი დაგიკავშირდებათ."],
+  [
+    "რა შედის კალკულატორში?",
+    "კალკულატორი აჩვენებს აუქციონის fee-ს და ტრანსპორტირების ჯამს არჩეული ლოკაციის მიხედვით.",
+  ],
+  [
+    "რამდენი დრო სჭირდება ჩამოყვანას?",
+    "საშუალოდ 6-10 კვირა, რაც დამოკიდებულია yard-ზე, პორტზე და გემის გრაფიკზე.",
+  ],
+  [
+    "დაზიანებულ მანქანასაც ამოწმებთ?",
+    "დიახ, ვამოწმებთ ფოტოებს, title status-ს და რისკებს, სანამ აუქციონზე შევალთ.",
+  ],
+  [
+    "შემიძლია კონკრეტული მანქანის მოძებნა?",
+    "დიახ, დაგვიტოვეთ სასურველი მარკა, მოდელი, წელი და ბიუჯეტი, გუნდი დაგიკავშირდებათ.",
+  ],
 ];
 
 export default function Home() {
@@ -109,20 +121,21 @@ export default function Home() {
           muted
           loop
           playsInline
-          className="absolute inset-0 h-full w-full object-cover opacity-42"
+          className="absolute inset-0 h-full w-full object-cover opacity-35"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/78 to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/82 to-black/35" />
         <div className="relative mx-auto grid min-h-[calc(100vh-82px)] max-w-7xl items-center gap-10 px-4 py-16 md:px-6 lg:grid-cols-[1.05fr_0.95fr]">
           <div>
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-zinc-200 backdrop-blur">
               <Sparkles className="size-4 text-red-400" />
               Auto import from USA, Canada and China
             </div>
-            <h1 className="max-w-4xl text-4xl font-semibold leading-tight tracking-normal md:text-6xl">
-              ავტომობილის იმპორტი გამჭვირვალე ფასით და კონტროლით პირველივე დღიდან.
+            <h1 className="max-w-3xl text-4xl font-semibold leading-[1.02] md:text-5xl lg:text-6xl">
+              ავტომობილის იმპორტი მკაფიო ფასით და სწრაფი პროცესით.
             </h1>
-            <p className="mt-6 max-w-2xl text-base leading-8 text-zinc-200 md:text-lg">
-              Carlink გეხმარებათ მანქანის შერჩევაში, აუქციონზე შეძენაში, ტრანსპორტირებაში და საბუთების მართვაში. თქვენ ხედავთ გზას, ფასს და მომდევნო ნაბიჯს.
+            <p className="mt-6 max-w-xl text-base leading-8 text-zinc-200 md:text-lg">
+              Carlink გეხმარება შერჩევაში, აუქციონზე შეძენაში, ტრანსპორტირებაში და დოკუმენტებში,
+              ისე რომ თავიდანვე იცოდე ფასი, ვადა და შემდეგი ნაბიჯი.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -146,11 +159,11 @@ export default function Home() {
           <div className="hidden lg:block">
             <div className="rounded-lg border border-white/10 bg-white/[0.07] p-5 backdrop-blur">
               <div className="relative aspect-[4/3] overflow-hidden rounded-md">
-                <Image src="/lambo.png" alt="Carlink import vehicle" fill className="object-cover" priority />
+                <Image src="/container.jpg" alt="Carlink auto import logistics" fill className="object-cover" priority />
               </div>
               <div className="mt-5 grid grid-cols-3 gap-3">
                 {[
-                  ["2019", "წლიდან ბაზარზე"],
+                  ["Copart", "და IAAI"],
                   ["3", "მიმართულება"],
                   ["24/7", "სტატუსის კონტროლი"],
                 ].map(([value, label]) => (
@@ -167,7 +180,11 @@ export default function Home() {
 
       <section id="process" className="bg-zinc-50 py-16 md:py-20">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <SectionHeading eyebrow="Workflow" title="როგორ მუშაობს იმპორტი" text="მთელი პროცესი დაყოფილია მარტივ ნაბიჯებად, რომ იცოდეთ სად არის მანქანა და რა ხდება შემდეგ." />
+          <SectionHeading
+            eyebrow="Workflow"
+            title="როგორ მუშაობს იმპორტი"
+            text="მთელი პროცესი დაყოფილია მარტივ ნაბიჯებად, რომ იცოდე სად არის მანქანა და რა ხდება შემდეგ."
+          />
           <div className="mt-10 grid gap-4 md:grid-cols-4">
             {steps.map((step, index) => {
               const Icon = step.icon;
@@ -191,7 +208,12 @@ export default function Home() {
       <section id="services" className="bg-zinc-950 py-16 text-white md:py-20">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 md:px-6 lg:grid-cols-[0.9fr_1.1fr]">
           <div>
-            <SectionHeading dark eyebrow="Services" title="რატომ Carlink" text="ჩვენი მიზანია იმპორტი იყოს პროგნოზირებადი: წინასწარი შემოწმებით, გამჭვირვალე ღირებულებით და ცოცხალი კომუნიკაციით." />
+            <SectionHeading
+              dark
+              eyebrow="Services"
+              title="რატომ Carlink"
+              text="ჩვენი მიზანია იმპორტი იყოს პროგნოზირებადი: წინასწარი შემოწმებით, მკაფიო ღირებულებით და ცოცხალი კომუნიკაციით."
+            />
             <Link
               href="/calculator"
               className="mt-7 inline-flex h-12 items-center gap-2 rounded-md bg-red-700 px-5 text-sm font-semibold text-white transition hover:bg-red-600"
@@ -213,7 +235,11 @@ export default function Home() {
 
       <section id="routes" className="py-16 md:py-20">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <SectionHeading eyebrow="Routes" title="მიმართულებები" text="ვმუშაობთ იმ ბაზრებზე, სადაც არჩევანი, ფასები და ლოგისტიკა რეალურად აძლევს კლიენტს უპირატესობას." />
+          <SectionHeading
+            eyebrow="Routes"
+            title="მიმართულებები"
+            text="ვმუშაობთ იმ ბაზრებზე, სადაც არჩევანი, ფასები და ლოგისტიკა რეალურად აძლევს კლიენტს უპირატესობას."
+          />
           <div className="mt-10 grid gap-4 md:grid-cols-3">
             {[
               ["USA", "Copart / IAAI", "ყველაზე დიდი არჩევანი, დაზიანებული და clean title ავტომობილები."],
@@ -233,10 +259,14 @@ export default function Home() {
 
       <section className="bg-zinc-50 py-16 md:py-20">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <SectionHeading eyebrow="Popular" title="ხშირად მოთხოვნილი მოდელები" text="ეს ბლოკი admin-იდან იმართება: ფოტო, ძრავი, წლების შუალედი, ცხენის ძალა და ფასის დიაპაზონი." />
+          <SectionHeading
+            eyebrow="Popular"
+            title="ხშირად მოთხოვნადი მოდელები"
+            text="ეს ბლოკი admin-იდან იმართება: ფოტო, ძრავი, წლების შუალედი, ცხენის ძალა და ფასის დიაპაზონი."
+          />
           {vehicles.length === 0 ? (
             <div className="mt-10 rounded-lg border border-dashed border-zinc-300 bg-white p-8 text-center text-sm text-zinc-500">
-              Featured მანქანები ჯერ არ არის დამატებული. შეავსე `/admin`-ში vehicles სექცია.
+              Featured მანქანები ჯერ დამატებული არ არის. შეავსე `/admin`-ში vehicles სექცია.
             </div>
           ) : (
             <div className="mt-10 grid gap-4 md:grid-cols-3">
@@ -246,7 +276,9 @@ export default function Home() {
                     <Image src={car.imageUrl} alt={`${car.brand} ${car.model}`} fill className="object-cover" />
                   </div>
                   <div className="p-5">
-                    <h3 className="text-xl font-semibold">{car.brand} {car.model}</h3>
+                    <h3 className="text-xl font-semibold">
+                      {car.brand} {car.model}
+                    </h3>
                     <p className="mt-2 text-sm text-zinc-500">
                       {car.yearFrom} - {car.yearTo} • {car.engine} • {car.horsepower} HP
                     </p>
@@ -267,9 +299,19 @@ export default function Home() {
       <section id="contact" className="py-16 md:py-20">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 md:px-6 lg:grid-cols-[0.95fr_1.05fr]">
           <div className="rounded-lg bg-zinc-950 p-6 text-white md:p-8">
-            <SectionHeading dark eyebrow="Documents" title="რა დაგჭირდებათ" text="შეკვეთის დაწყებამდე საკმარისია რამდენიმე საბაზისო ინფორმაცია. დანარჩენ პროცესს ჩვენი გუნდი გაუძღვება." />
+            <SectionHeading
+              dark
+              eyebrow="Documents"
+              title="რა დაგჭირდება"
+              text="შეკვეთის დაწყებამდე საკმარისია რამდენიმე საბაზისო ინფორმაცია. დანარჩენ პროცესს ჩვენი გუნდი გაუძღვება."
+            />
             <div className="mt-8 grid gap-3">
-              {["პირადი მონაცემები და საკონტაქტო ნომერი", "სასურველი მარკა, მოდელი, წელი და ბიუჯეტი", "გადახდის გრაფიკის შეთანხმება", "საბუთების გადამოწმება ჩამოსვლამდე"].map((item) => (
+              {[
+                "პირადი მონაცემები და საკონტაქტო ნომერი",
+                "სასურველი მარკა, მოდელი, წელი და ბიუჯეტი",
+                "გადახდის გრაფიკის შეთანხმება",
+                "საბუთების გადამოწმება ჩამოსვლამდე",
+              ].map((item) => (
                 <div key={item} className="flex items-center gap-3 rounded-md border border-white/10 bg-white/[0.06] p-3">
                   <ShieldCheck className="size-5 text-red-400" />
                   <span className="text-sm text-zinc-200">{item}</span>
@@ -293,7 +335,7 @@ export default function Home() {
       </section>
 
       <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
-        {contactOpen && (
+        {contactOpen ? (
           <div className="w-[340px] rounded-2xl border border-zinc-200 bg-white p-4 text-zinc-950 shadow-2xl">
             <div className="mb-3 flex items-center justify-between">
               <p className="font-semibold">მოთხოვნის გაგზავნა</p>
@@ -346,13 +388,18 @@ export default function Home() {
                 <Mail className="size-4" />
                 ელფოსტა
               </a>
-              <a className="flex h-11 items-center gap-2 rounded-xl border border-zinc-200 px-3 text-sm font-semibold" href="https://www.facebook.com/profile.php?id=61583941749777" target="_blank" rel="noreferrer">
+              <a
+                className="flex h-11 items-center gap-2 rounded-xl border border-zinc-200 px-3 text-sm font-semibold"
+                href="https://www.facebook.com/profile.php?id=61583941749777"
+                target="_blank"
+                rel="noreferrer"
+              >
                 <MessageCircle className="size-4" />
                 Messenger
               </a>
             </div>
           </div>
-        )}
+        ) : null}
         <button
           onClick={() => setContactOpen((value) => !value)}
           className="flex size-14 items-center justify-center rounded-full bg-red-700 text-white shadow-xl shadow-red-900/30 transition hover:bg-red-600"
