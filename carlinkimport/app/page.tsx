@@ -1,8 +1,9 @@
 "use client";
 
+import { send } from "@emailjs/browser";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import {
   ArrowRight,
   BadgeCheck,
@@ -19,6 +20,8 @@ import {
   Truck,
   X,
 } from "lucide-react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const steps = [
   { title: "შერჩევა", text: "ვპოულობთ მანქანას Copart, IAAI ან პარტნიორ ბაზებზე.", icon: Search },
@@ -51,9 +54,52 @@ const faq = [
 
 export default function Home() {
   const [contactOpen, setContactOpen] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+
+  const handleContactSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const name = String(formData.get("name") ?? "").trim();
+    const phone = String(formData.get("phone") ?? "").trim();
+    const desiredCar = String(formData.get("desiredCar") ?? "").trim();
+    const budget = String(formData.get("budget") ?? "").trim();
+    const notes = String(formData.get("notes") ?? "").trim();
+
+    if (!name || !phone) {
+      toast.error("შეავსე სახელი და ტელეფონი.");
+      return;
+    }
+
+    setIsSending(true);
+
+    try {
+      await send(
+        "service_2v5rcbm",
+        "template_0c7gopa",
+        {
+          name,
+          phone,
+          make: desiredCar || "Not specified",
+          model: budget || "Not specified",
+          year: notes || "Not specified",
+        },
+        "zkuga8Pi8HVdc2H_N",
+      );
+      toast.success("მოთხოვნა გაიგზავნა. მალე დაგიკავშირდებით.");
+      form.reset();
+      setContactOpen(false);
+    } catch {
+      toast.error("გაგზავნა ვერ მოხერხდა. სცადე თავიდან.");
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   return (
     <main className="bg-white text-zinc-950">
+      <ToastContainer position="top-right" autoClose={4000} theme="colored" />
+
       <section id="home" className="relative min-h-[calc(100vh-82px)] overflow-hidden bg-zinc-950 text-white">
         <video
           src="/tiktok.mp4"
@@ -74,8 +120,7 @@ export default function Home() {
               ავტომობილის იმპორტი გამჭვირვალე ფასით და კონტროლით პირველივე დღიდან.
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-zinc-200 md:text-lg">
-              Carlink გეხმარებათ მანქანის შერჩევაში, აუქციონზე შეძენაში, ტრანსპორტირებაში და საბუთების
-              მართვაში. თქვენ ხედავთ გზას, ფასს და მომდევნო ნაბიჯს.
+              Carlink გეხმარებათ მანქანის შერჩევაში, აუქციონზე შეძენაში, ტრანსპორტირებაში და საბუთების მართვაში. თქვენ ხედავთ გზას, ფასს და მომდევნო ნაბიჯს.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -85,13 +130,14 @@ export default function Home() {
                 <Calculator className="size-4" />
                 კალკულატორი
               </Link>
-              <Link
-                href="/auctions"
+              <button
+                type="button"
+                onClick={() => setContactOpen(true)}
                 className="inline-flex h-12 items-center gap-2 rounded-md border border-white/15 bg-white/10 px-5 text-sm font-semibold text-white transition hover:bg-white/15"
               >
-                აუქციონები
+                მოთხოვნის დატოვება
                 <ArrowRight className="size-4" />
-              </Link>
+              </button>
             </div>
           </div>
 
@@ -233,23 +279,59 @@ export default function Home() {
 
       <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
         {contactOpen && (
-          <div className="w-[280px] rounded-lg border border-zinc-200 bg-white p-4 text-zinc-950 shadow-2xl">
+          <div className="w-[340px] rounded-2xl border border-zinc-200 bg-white p-4 text-zinc-950 shadow-2xl">
             <div className="mb-3 flex items-center justify-between">
-              <p className="font-semibold">სწრაფი კონტაქტი</p>
+              <p className="font-semibold">მოთხოვნის გაგზავნა</p>
               <button onClick={() => setContactOpen(false)} className="rounded-md p-1 hover:bg-zinc-100">
                 <X className="size-4" />
               </button>
             </div>
-            <div className="grid gap-2">
-              <a className="flex h-11 items-center gap-2 rounded-md bg-zinc-950 px-3 text-sm font-semibold text-white" href="tel:+995544440506">
+
+            <form className="grid gap-3" onSubmit={handleContactSubmit}>
+              <input
+                name="name"
+                placeholder="სახელი"
+                className="h-11 rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:border-red-700"
+              />
+              <input
+                name="phone"
+                placeholder="ტელეფონი"
+                className="h-11 rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:border-red-700"
+              />
+              <input
+                name="desiredCar"
+                placeholder="სასურველი მანქანა"
+                className="h-11 rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:border-red-700"
+              />
+              <input
+                name="budget"
+                placeholder="ბიუჯეტი"
+                className="h-11 rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:border-red-700"
+              />
+              <textarea
+                name="notes"
+                placeholder="დამატებითი ინფორმაცია"
+                className="min-h-24 rounded-xl border border-zinc-200 px-3 py-3 text-sm outline-none focus:border-red-700"
+              />
+              <button
+                type="submit"
+                disabled={isSending}
+                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-zinc-950 px-3 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {isSending ? "იგზავნება..." : "გაგზავნა"}
+              </button>
+            </form>
+
+            <div className="mt-3 grid gap-2">
+              <a className="flex h-11 items-center gap-2 rounded-xl bg-zinc-950 px-3 text-sm font-semibold text-white" href="tel:+995544440506">
                 <Phone className="size-4" />
                 დარეკვა
               </a>
-              <a className="flex h-11 items-center gap-2 rounded-md border border-zinc-200 px-3 text-sm font-semibold" href="mailto:Carlinkautoimport@gmail.com">
+              <a className="flex h-11 items-center gap-2 rounded-xl border border-zinc-200 px-3 text-sm font-semibold" href="mailto:Carlinkautoimport@gmail.com">
                 <Mail className="size-4" />
                 ელფოსტა
               </a>
-              <a className="flex h-11 items-center gap-2 rounded-md border border-zinc-200 px-3 text-sm font-semibold" href="https://www.facebook.com/profile.php?id=61583941749777" target="_blank" rel="noreferrer">
+              <a className="flex h-11 items-center gap-2 rounded-xl border border-zinc-200 px-3 text-sm font-semibold" href="https://www.facebook.com/profile.php?id=61583941749777" target="_blank" rel="noreferrer">
                 <MessageCircle className="size-4" />
                 Messenger
               </a>

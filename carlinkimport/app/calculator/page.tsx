@@ -1,19 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { ReactNode, useEffect, useMemo, useState } from "react";
-import {
-  ArrowRight,
-  Calculator,
-  Car,
-  Check,
-  Loader2,
-  MapPin,
-  Phone,
-  Route,
-  Ship,
-  ShieldCheck,
-} from "lucide-react";
+import Link from "next/link";
+import { Calculator, Car, Check, Loader2, MapPin, Phone, Route, Ship, ShieldCheck } from "lucide-react";
 import {
   AuctionProvider,
   LocationTariff,
@@ -28,13 +17,13 @@ import {
 import { fetchPublicTariffs, hasSupabaseConfig } from "../lib/supabase-rest";
 
 const inputClass =
-  "h-12 w-full rounded-md border border-zinc-200 bg-white px-4 text-sm text-zinc-950 outline-none transition focus:border-red-700 focus:ring-4 focus:ring-red-700/10";
+  "h-12 w-full rounded-xl border border-zinc-200 bg-white px-4 text-sm text-zinc-950 outline-none transition focus:border-red-700 focus:ring-4 focus:ring-red-700/10";
 
 export default function CalculatorPage() {
   const [tariffs, setTariffs] = useState<LocationTariff[]>(sampleTariffs);
   const [isLoading, setIsLoading] = useState(hasSupabaseConfig);
   const [dataMessage, setDataMessage] = useState(
-    hasSupabaseConfig ? "" : "Supabase ჯერ არ არის დაკავშირებული, ნაჩვენებია sample ტარიფები.",
+    hasSupabaseConfig ? "" : "Supabase ჯერ არ არის დაკავშირებული და დროებით sample ტარიფებია ჩატვირთული.",
   );
   const [auction, setAuction] = useState<AuctionProvider>("copart");
   const [state, setState] = useState("");
@@ -52,11 +41,11 @@ export default function CalculatorPage() {
           setTariffs(items);
           setDataMessage("");
         } else {
-          setDataMessage("აქტიური ტარიფები ჯერ არ არის დამატებული, ნაჩვენებია sample მონაცემები.");
+          setDataMessage("აქტიური ტარიფები ჯერ არ არის დამატებული და ნაჩვენებია sample მონაცემები.");
         }
       })
       .catch(() => {
-        setDataMessage("ტარიფების ჩატვირთვა ვერ მოხერხდა, დროებით ვიყენებთ sample მონაცემებს.");
+        setDataMessage("ტარიფების ჩატვირთვა ვერ მოხერხდა და ნაჩვენებია sample მონაცემები.");
       })
       .finally(() => setIsLoading(false));
   }, []);
@@ -100,67 +89,66 @@ export default function CalculatorPage() {
   };
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      <section className="relative overflow-hidden border-b border-white/10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(185,28,28,0.32),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.08),transparent_30%)]" />
-        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-16 md:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:py-20">
-          <div className="flex flex-col justify-center">
-            <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-zinc-200">
-              <Route className="size-4 text-red-400" />
-              Location based import calculator
-            </div>
-            <h1 className="max-w-3xl text-4xl font-semibold tracking-normal text-white md:text-6xl">
-              დაითვალე ავტომობილის ჩამოყვანა ლოკაციით, პორტით და სერვისებით.
-            </h1>
-            <p className="mt-5 max-w-2xl text-base leading-8 text-zinc-300 md:text-lg">
-              აირჩიე აუქციონი, yard-ის მდებარეობა და მანქანის ტიპი. კალკულატორი აჩვენებს ცოცხალ
-              breakdown-ს, რომ გადაწყვეტილება ციფრებით მიიღო.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                href="tel:+995544440506"
-                className="inline-flex h-12 items-center gap-2 rounded-md bg-red-700 px-5 text-sm font-semibold text-white transition hover:bg-red-600"
-              >
-                <Phone className="size-4" />
-                კონსულტაცია
-              </a>
-              <Link
-                href="/"
-                className="inline-flex h-12 items-center gap-2 rounded-md border border-white/15 px-5 text-sm font-semibold text-white transition hover:bg-white/10"
-              >
-                პლატფორმის ნახვა
-                <ArrowRight className="size-4" />
-              </Link>
-            </div>
+    <main className="min-h-screen bg-[#f5f0e8] text-zinc-950">
+      <section className="border-b border-black/5 bg-[linear-gradient(180deg,#f7f2ec_0%,#ece1d4_100%)]">
+        <div className="mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-14">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-red-200 bg-white/80 px-4 py-2 text-sm text-zinc-700">
+            <Route className="size-4 text-red-700" />
+            Import cost calculator
           </div>
-
-          <div className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.06] p-4 backdrop-blur md:grid-cols-3">
-            {[
-              ["Auction", auction.toUpperCase()],
-              ["Location", selectedTariff ? `${selectedTariff.city}, ${selectedTariff.state}` : "აირჩიე"],
-              ["Port", selectedTariff?.port ?? "აირჩიე"],
-            ].map(([label, value]) => (
-              <div key={label} className="rounded-md border border-white/10 bg-zinc-950/70 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">{label}</p>
-                <p className="mt-2 text-sm font-semibold text-white">{value}</p>
+          <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+            <div>
+              <h1 className="max-w-3xl text-4xl font-semibold leading-tight tracking-normal md:text-6xl">
+                დაითვალე ჩამოყვანის ღირებულება მარტივად და ზუსტად.
+              </h1>
+              <p className="mt-5 max-w-2xl text-base leading-8 text-zinc-600 md:text-lg">
+                აქ მხოლოდ კალკულაციაა. აირჩიე auction, yard-ის ლოკაცია, მანქანის ტიპი და მიიღე სრული breakdown.
+              </p>
+              <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                <HeroChip label="Auction" value={auction.toUpperCase()} />
+                <HeroChip
+                  label="Location"
+                  value={selectedTariff ? `${selectedTariff.city}, ${selectedTariff.state}` : "აირჩიე"}
+                />
+                <HeroChip label="Port" value={selectedTariff?.port ?? "აირჩიე"} />
               </div>
-            ))}
+            </div>
+
+            <div className="rounded-3xl border border-black/10 bg-zinc-950 p-5 text-white shadow-[0_18px_60px_rgba(0,0,0,0.18)]">
+              <div className="flex items-center gap-3">
+                <div className="flex size-12 items-center justify-center rounded-2xl bg-red-700">
+                  <Calculator className="size-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-zinc-400">Estimated total</p>
+                  <h2 className="text-3xl font-semibold">{result ? formatUsd(result.total) : "$0"}</h2>
+                </div>
+              </div>
+              <div className="mt-5 space-y-3 rounded-2xl bg-white/5 p-4">
+                <Line label="Bid amount" value={result ? formatUsd(result.bid) : "-"} />
+                <Line label="Auction fee" value={result ? formatUsd(result.auctionFee) : "-"} />
+                <Line label="Inland" value={result ? formatUsd(result.inland) : "-"} />
+                <Line label="Ocean" value={result ? formatUsd(result.ocean) : "-"} />
+                <Line label="Service" value={result ? formatUsd(result.serviceFee) : "-"} />
+                <Line label="Optional" value={result ? formatUsd(result.optionalFees) : "-"} />
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-6 px-4 py-10 md:px-6 lg:grid-cols-[1fr_0.9fr]">
-        <div className="rounded-lg bg-white p-4 text-zinc-950 shadow-2xl shadow-black/20 md:p-6">
+      <section className="mx-auto grid max-w-7xl gap-6 px-4 py-8 md:px-6 lg:grid-cols-[1.08fr_0.92fr]">
+        <div className="rounded-3xl border border-black/10 bg-white p-5 shadow-sm md:p-7">
           <div className="mb-6 flex items-center justify-between gap-4 border-b border-zinc-200 pb-5">
             <div>
-              <p className="text-sm font-semibold text-red-700">Route builder</p>
-              <h2 className="mt-1 text-2xl font-semibold">მარშრუტი და მონაცემები</h2>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-red-700">Calculator</p>
+              <h2 className="mt-2 text-2xl font-semibold">მარშრუტი და მონაცემები</h2>
             </div>
             {isLoading && <Loader2 className="size-5 animate-spin text-red-700" />}
           </div>
 
           {dataMessage && (
-            <div className="mb-5 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
               {dataMessage}
             </div>
           )}
@@ -172,12 +160,13 @@ export default function CalculatorPage() {
                 {(["copart", "iaai"] as AuctionProvider[]).map((item) => (
                   <button
                     key={item}
+                    type="button"
                     onClick={() => {
                       setAuction(item);
                       setState("");
                       setTariffId("");
                     }}
-                    className={`h-12 rounded-md border text-sm font-semibold uppercase transition ${
+                    className={`h-12 rounded-xl border text-sm font-semibold uppercase transition ${
                       auction === item
                         ? "border-red-700 bg-red-700 text-white"
                         : "border-zinc-200 bg-white hover:border-red-300"
@@ -210,7 +199,7 @@ export default function CalculatorPage() {
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-sm font-semibold">ქალაქი / Yard</span>
+                <span className="mb-2 block text-sm font-semibold">ქალაქი / yard</span>
                 <select
                   className={inputClass}
                   value={selectedTariff?.id ?? ""}
@@ -242,7 +231,7 @@ export default function CalculatorPage() {
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-sm font-semibold">Bid Amount</span>
+                <span className="mb-2 block text-sm font-semibold">Bid amount</span>
                 <input
                   className={inputClass}
                   min="0"
@@ -263,8 +252,9 @@ export default function CalculatorPage() {
                   return (
                     <button
                       key={service}
+                      type="button"
                       onClick={() => toggleService(service)}
-                      className={`flex min-h-20 items-start gap-3 rounded-md border p-3 text-left transition ${
+                      className={`flex min-h-20 items-start gap-3 rounded-2xl border p-3 text-left transition ${
                         active ? "border-red-700 bg-red-50" : "border-zinc-200 hover:border-zinc-400"
                       }`}
                     >
@@ -287,73 +277,83 @@ export default function CalculatorPage() {
           </div>
         </div>
 
-        <aside className="rounded-lg border border-white/10 bg-zinc-900 p-4 md:p-6">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex size-11 items-center justify-center rounded-md bg-red-700">
-              <Calculator className="size-5" />
-            </div>
-            <div>
-              <p className="text-sm text-zinc-400">Estimated total</p>
-              <h2 className="text-3xl font-semibold">{result ? formatUsd(result.total) : "$0"}</h2>
-            </div>
+        <aside className="space-y-5">
+          <div className="rounded-3xl border border-black/10 bg-[#171717] p-5 text-white shadow-sm">
+            {!selectedTariff ? (
+              <div className="rounded-2xl border border-dashed border-white/20 p-6 text-center text-zinc-300">
+                ამ აუქციონისთვის ტარიფი ჯერ არ არის დამატებული.
+              </div>
+            ) : !result ? (
+              <div className="rounded-2xl border border-dashed border-white/20 p-6 text-center text-zinc-300">
+                შეიყვანე სწორი bid amount, რომ შედეგი გამოჩნდეს.
+              </div>
+            ) : (
+              <>
+                <div className="mb-5 grid gap-3 sm:grid-cols-3">
+                  <SummaryIcon icon={<MapPin className="size-4" />} label={selectedTariff.city} value={selectedTariff.port} />
+                  <SummaryIcon icon={<Car className="size-4" />} label="Vehicle" value={vehicleTypes[vehicleType].label} />
+                  <SummaryIcon icon={<Ship className="size-4" />} label="Ocean" value={formatUsd(result.ocean)} />
+                </div>
+
+                <div className="space-y-3 rounded-2xl bg-white/5 p-4">
+                  <Line label="Bid amount" value={formatUsd(result.bid)} />
+                  <Line label="Auction fee" value={formatUsd(result.auctionFee)} />
+                  <Line label="Inland transport" value={formatUsd(result.inland)} />
+                  <Line label="Ocean shipping" value={formatUsd(result.ocean)} />
+                  <Line label="Carlink service" value={formatUsd(result.serviceFee)} />
+                  <Line label="Optional services" value={formatUsd(result.optionalFees)} />
+                  <div className="border-t border-white/10 pt-3">
+                    <Line strong label="Estimated total" value={formatUsd(result.total)} />
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
-          {!selectedTariff ? (
-            <div className="rounded-md border border-dashed border-white/20 p-6 text-center text-zinc-300">
-              ამ აუქციონისთვის ტარიფი ჯერ არ არის დამატებული. დაგვიკავშირდით ზუსტი ფასისთვის.
+          <div className="rounded-3xl border border-red-200 bg-red-50 p-5">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="mt-0.5 size-5 shrink-0 text-red-700" />
+              <div>
+                <p className="font-semibold text-zinc-950">მნიშვნელოვანი შენიშვნა</p>
+                <p className="mt-2 text-sm leading-6 text-zinc-700">
+                  ეს გვერდი მხოლოდ ღირებულებას ითვლის. საბოლოო ფასი შეიძლება შეიცვალოს title status-ის, ზუსტი yard-ის და shipping schedule-ის მიხედვით.
+                </p>
+              </div>
             </div>
-          ) : !result ? (
-            <div className="rounded-md border border-dashed border-white/20 p-6 text-center text-zinc-300">
-              შეიყვანე სწორი bid amount, რომ ფასის breakdown გამოჩნდეს.
-            </div>
-          ) : (
-            <>
-              <div className="mb-5 grid gap-3 sm:grid-cols-3">
-                <SummaryIcon icon={<MapPin className="size-4" />} label={selectedTariff.city} value={selectedTariff.port} />
-                <SummaryIcon icon={<Car className="size-4" />} label="Type" value={vehicleTypes[vehicleType].label} />
-                <SummaryIcon icon={<Ship className="size-4" />} label="Ocean" value={formatUsd(result.ocean)} />
-              </div>
-
-              <div className="space-y-3 rounded-md bg-zinc-950 p-4">
-                <Line label="Bid amount" value={formatUsd(result.bid)} />
-                <Line label="Auction fee" value={formatUsd(result.auctionFee)} />
-                <Line label="Inland transport" value={formatUsd(result.inland)} />
-                <Line label="Ocean shipping" value={formatUsd(result.ocean)} />
-                <Line label="Carlink service" value={formatUsd(result.serviceFee)} />
-                <Line label="Optional services" value={formatUsd(result.optionalFees)} />
-                <div className="border-t border-white/10 pt-3">
-                  <Line strong label="Estimated total" value={formatUsd(result.total)} />
-                </div>
-              </div>
-
-              <div className="mt-5 rounded-md border border-red-500/30 bg-red-500/10 p-4">
-                <div className="flex items-start gap-3">
-                  <ShieldCheck className="mt-1 size-5 shrink-0 text-red-300" />
-                  <p className="text-sm leading-6 text-red-50">
-                    ეს არის სავარაუდო ღირებულება. საბოლოო ფასი დამოკიდებულია title status-ზე, ზუსტ yard-ზე,
-                    პორტის დატვირთვაზე და shipping schedule-ზე.
-                  </p>
-                </div>
-              </div>
-
+            <div className="mt-4 flex flex-wrap gap-2">
               <a
-                href={`mailto:Carlinkautoimport@gmail.com?subject=Import estimate ${selectedTariff.city}&body=Auction: ${auction.toUpperCase()}%0ALocation: ${selectedTariff.city}, ${selectedTariff.state}%0AYard: ${selectedTariff.yardName}%0APort: ${selectedTariff.port}%0AVehicle: ${vehicleTypes[vehicleType].label}%0ABid: ${formatUsd(result.bid)}%0ATotal: ${formatUsd(result.total)}`}
-                className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-red-700 px-5 text-sm font-semibold text-white transition hover:bg-red-600"
+                href="tel:+995544440506"
+                className="inline-flex h-11 items-center gap-2 rounded-xl bg-red-700 px-4 text-sm font-semibold text-white"
               >
-                დაგვიკავშირდი ამ ფასით
-                <ArrowRight className="size-4" />
+                <Phone className="size-4" />
+                კონსულტაცია
               </a>
-            </>
-          )}
+              <Link
+                href="/"
+                className="inline-flex h-11 items-center rounded-xl border border-red-200 px-4 text-sm font-semibold text-zinc-900"
+              >
+                მთავარზე დაბრუნება
+              </Link>
+            </div>
+          </div>
         </aside>
       </section>
     </main>
   );
 }
 
+function HeroChip({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-white/80 p-4">
+      <p className="text-xs uppercase tracking-[0.18em] text-zinc-500">{label}</p>
+      <p className="mt-2 text-sm font-semibold text-zinc-950">{value}</p>
+    </div>
+  );
+}
+
 function SummaryIcon({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
-    <div className="rounded-md border border-white/10 bg-white/5 p-3">
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
       <div className="mb-2 text-red-300">{icon}</div>
       <p className="truncate text-sm font-semibold">{label}</p>
       <p className="truncate text-xs text-zinc-400">{value}</p>
