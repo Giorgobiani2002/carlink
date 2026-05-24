@@ -3,7 +3,7 @@
 import { send } from "@emailjs/browser";
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import {
   ArrowRight,
   BadgeCheck,
@@ -20,6 +20,8 @@ import {
   Truck,
   X,
 } from "lucide-react";
+import { FeaturedVehicle } from "./lib/calculator";
+import { fetchPublicVehicles, hasSupabaseConfig } from "./lib/supabase-rest";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -39,12 +41,6 @@ const services = [
   "კონსულტაცია განბაჟებასა და რეგისტრაციაზე",
 ];
 
-const popularImports = [
-  { name: "Toyota Camry", range: "$10,500 - $16,000", image: "/slide1.jpg" },
-  { name: "Hyundai Elantra", range: "$8,500 - $13,500", image: "/slide2.jpg" },
-  { name: "BMW X5", range: "$22,000 - $38,000", image: "/slide3.jpg" },
-];
-
 const faq = [
   ["რა შედის კალკულატორის ფასში?", "Bid, აუქციონის fee, inland transport, ocean shipping, service fee და არჩეული დამატებითი სერვისები."],
   ["რამდენი დრო სჭირდება ჩამოყვანას?", "საშუალოდ 6-10 კვირა, რაც დამოკიდებულია yard-ზე, პორტზე და გემის schedule-ზე."],
@@ -55,6 +51,12 @@ const faq = [
 export default function Home() {
   const [contactOpen, setContactOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [vehicles, setVehicles] = useState<FeaturedVehicle[]>([]);
+
+  useEffect(() => {
+    if (!hasSupabaseConfig) return;
+    fetchPublicVehicles().then(setVehicles).catch(() => setVehicles([]));
+  }, []);
 
   const handleContactSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -231,21 +233,34 @@ export default function Home() {
 
       <section className="bg-zinc-50 py-16 md:py-20">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <SectionHeading eyebrow="Popular" title="ხშირად მოთხოვნილი მოდელები" text="საწყისი დიაპაზონები დაგეხმარებათ ბიუჯეტის წარმოდგენაში. ზუსტი ღირებულებისთვის გამოიყენეთ კალკულატორი." />
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            {popularImports.map((car) => (
-              <article key={car.name} className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
-                <div className="relative aspect-[16/10]">
-                  <Image src={car.image} alt={car.name} fill className="object-cover" />
-                </div>
-                <div className="p-5">
-                  <h3 className="text-xl font-semibold">{car.name}</h3>
-                  <p className="mt-2 text-sm text-zinc-500">Estimated import range</p>
-                  <p className="mt-1 text-lg font-semibold text-red-700">{car.range}</p>
-                </div>
-              </article>
-            ))}
-          </div>
+          <SectionHeading eyebrow="Popular" title="ხშირად მოთხოვნილი მოდელები" text="ეს ბლოკი admin-იდან იმართება: ფოტო, ძრავი, წლების შუალედი, ცხენის ძალა და ფასის დიაპაზონი." />
+          {vehicles.length === 0 ? (
+            <div className="mt-10 rounded-lg border border-dashed border-zinc-300 bg-white p-8 text-center text-sm text-zinc-500">
+              Featured მანქანები ჯერ არ არის დამატებული. შეავსე `/admin`-ში vehicles სექცია.
+            </div>
+          ) : (
+            <div className="mt-10 grid gap-4 md:grid-cols-3">
+              {vehicles.map((car) => (
+                <article key={car.id} className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
+                  <div className="relative aspect-[16/10] bg-zinc-100">
+                    <Image src={car.imageUrl} alt={`${car.brand} ${car.model}`} fill className="object-cover" />
+                  </div>
+                  <div className="p-5">
+                    <h3 className="text-xl font-semibold">{car.brand} {car.model}</h3>
+                    <p className="mt-2 text-sm text-zinc-500">
+                      {car.yearFrom} - {car.yearTo} • {car.engine} • {car.horsepower} HP
+                    </p>
+                    <p className="mt-1 text-sm text-zinc-500">
+                      {car.fuel} • {car.drive}
+                    </p>
+                    <p className="mt-3 text-lg font-semibold text-red-700">
+                      ${car.priceFrom.toLocaleString()} - ${car.priceTo.toLocaleString()}
+                    </p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

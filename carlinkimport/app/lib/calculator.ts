@@ -15,6 +15,22 @@ export type LocationTariff = {
 
 export type OptionalService = "titleCheck" | "insurance" | "priorityDelivery";
 
+export type FeaturedVehicle = {
+  id: string;
+  brand: string;
+  model: string;
+  engine: string;
+  yearFrom: number;
+  yearTo: number;
+  horsepower: number;
+  fuel: string;
+  drive: string;
+  imageUrl: string;
+  priceFrom: number;
+  priceTo: number;
+  active: boolean;
+};
+
 export type CalculationResult = {
   auctionFee: number;
   inland: number;

@@ -1,13 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Lock, Loader2, Plus, Save, Shield, ToggleLeft, ToggleRight } from "lucide-react";
-import { AuctionProvider, LocationTariff } from "../lib/calculator";
+import { AuctionProvider, FeaturedVehicle, LocationTariff } from "../lib/calculator";
 import {
   fetchAdminTariffs,
+  fetchAdminVehicles,
   hasSupabaseConfig,
   loginAdmin,
   upsertAdminTariff,
+  upsertAdminVehicle,
 } from "../lib/supabase-rest";
 
 const emptyTariff: LocationTariff = {
@@ -22,6 +25,22 @@ const emptyTariff: LocationTariff = {
   active: true,
 };
 
+const emptyVehicle: FeaturedVehicle = {
+  id: "",
+  brand: "",
+  model: "",
+  engine: "",
+  yearFrom: 2018,
+  yearTo: 2024,
+  horsepower: 180,
+  fuel: "",
+  drive: "",
+  imageUrl: "",
+  priceFrom: 10000,
+  priceTo: 15000,
+  active: true,
+};
+
 const inputClass =
   "h-11 w-full rounded-md border border-zinc-200 bg-white px-3 text-sm text-zinc-950 outline-none transition focus:border-red-700 focus:ring-4 focus:ring-red-700/10";
 
@@ -31,6 +50,8 @@ export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [tariffs, setTariffs] = useState<LocationTariff[]>([]);
   const [draft, setDraft] = useState<LocationTariff>(emptyTariff);
+  const [vehicles, setVehicles] = useState<FeaturedVehicle[]>([]);
+  const [vehicleDraft, setVehicleDraft] = useState<FeaturedVehicle>(emptyVehicle);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -54,13 +75,30 @@ export default function AdminPage() {
     }
   }, [token]);
 
+  const loadVehicles = useCallback(async (accessToken = token) => {
+    if (!hasSupabaseConfig) {
+      setVehicles([]);
+      return;
+    }
+
+    try {
+      setVehicles(await fetchAdminVehicles(accessToken));
+    } catch {
+      setMessage("მანქანების ჩატვირთვა ვერ მოხერხდა.");
+    }
+  }, [token]);
+
+  const refreshAdminData = useCallback(async (accessToken = token) => {
+    await Promise.all([loadTariffs(accessToken), loadVehicles(accessToken)]);
+  }, [loadTariffs, loadVehicles, token]);
+
   useEffect(() => {
     const stored = window.localStorage.getItem("carlink_admin_token");
     if (stored) {
       setToken(stored);
-      loadTariffs(stored);
+      refreshAdminData(stored);
     }
-  }, [loadTariffs]);
+  }, [refreshAdminData]);
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -71,7 +109,7 @@ export default function AdminPage() {
       const session = await loginAdmin(email, password);
       window.localStorage.setItem("carlink_admin_token", session.access_token);
       setToken(session.access_token);
-      await loadTariffs(session.access_token);
+      await refreshAdminData(session.access_token);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "შესვლა ვერ მოხერხდა.");
     } finally {
@@ -106,10 +144,38 @@ export default function AdminPage() {
     }
   };
 
+  const handleVehicleSave = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!vehicleDraft.brand || !vehicleDraft.model || !vehicleDraft.imageUrl) {
+      setMessage("მანქანისთვის შეავსე brand, model და image url.");
+      return;
+    }
+
+    if (!hasSupabaseConfig) {
+      setMessage("Supabase არ არის დაკავშირებული და შენახვა ვერ მოხერხდა.");
+      return;
+    }
+
+    setIsLoading(true);
+    setMessage("");
+    try {
+      const saved = await upsertAdminVehicle(token, vehicleDraft);
+      setVehicles((current) => [saved, ...current.filter((vehicle) => vehicle.id !== saved.id)]);
+      setVehicleDraft(emptyVehicle);
+      setMessage("მანქანა შენახულია.");
+    } catch {
+      setMessage("მანქანის შენახვა ვერ მოხერხდა.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = () => {
     window.localStorage.removeItem("carlink_admin_token");
     setToken("");
     setTariffs([]);
+    setVehicles([]);
   };
 
   if (!token && hasSupabaseConfig) {
@@ -164,7 +230,7 @@ export default function AdminPage() {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => loadTariffs()}
+              onClick={() => refreshAdminData()}
               className="h-10 rounded-md border border-white/15 px-4 text-sm font-semibold hover:bg-white/10"
             >
               განახლება
@@ -283,6 +349,119 @@ export default function AdminPage() {
                         <td className="px-4 py-3 text-right">
                           <button
                             onClick={() => setDraft(tariff)}
+                            className="rounded-md border border-zinc-200 px-3 py-2 text-xs font-semibold hover:border-red-300"
+                          >
+                            Edit
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+          <form className="rounded-lg bg-white p-5 shadow-sm" onSubmit={handleVehicleSave}>
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-xl font-semibold">{vehicleDraft.id ? "მანქანის რედაქტირება" : "ახალი მანქანა"}</h2>
+              <Plus className="size-5 text-red-700" />
+            </div>
+
+            <div className="grid gap-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Brand" value={vehicleDraft.brand} onChange={(value) => setVehicleDraft({ ...vehicleDraft, brand: value })} />
+                <Field label="Model" value={vehicleDraft.model} onChange={(value) => setVehicleDraft({ ...vehicleDraft, model: value })} />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Engine" value={vehicleDraft.engine} onChange={(value) => setVehicleDraft({ ...vehicleDraft, engine: value })} />
+                <Field label="Horsepower" type="number" value={String(vehicleDraft.horsepower)} onChange={(value) => setVehicleDraft({ ...vehicleDraft, horsepower: Number(value) })} />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Year from" type="number" value={String(vehicleDraft.yearFrom)} onChange={(value) => setVehicleDraft({ ...vehicleDraft, yearFrom: Number(value) })} />
+                <Field label="Year to" type="number" value={String(vehicleDraft.yearTo)} onChange={(value) => setVehicleDraft({ ...vehicleDraft, yearTo: Number(value) })} />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Fuel" value={vehicleDraft.fuel} onChange={(value) => setVehicleDraft({ ...vehicleDraft, fuel: value })} />
+                <Field label="Drive" value={vehicleDraft.drive} onChange={(value) => setVehicleDraft({ ...vehicleDraft, drive: value })} />
+              </div>
+              <Field label="Image URL" value={vehicleDraft.imageUrl} onChange={(value) => setVehicleDraft({ ...vehicleDraft, imageUrl: value })} />
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Price from" type="number" value={String(vehicleDraft.priceFrom)} onChange={(value) => setVehicleDraft({ ...vehicleDraft, priceFrom: Number(value) })} />
+                <Field label="Price to" type="number" value={String(vehicleDraft.priceTo)} onChange={(value) => setVehicleDraft({ ...vehicleDraft, priceTo: Number(value) })} />
+              </div>
+              <button
+                type="button"
+                onClick={() => setVehicleDraft({ ...vehicleDraft, active: !vehicleDraft.active })}
+                className="flex h-11 items-center justify-between rounded-md border border-zinc-200 px-3 text-sm font-semibold"
+              >
+                Active vehicle
+                {vehicleDraft.active ? <ToggleRight className="size-6 text-red-700" /> : <ToggleLeft className="size-6 text-zinc-400" />}
+              </button>
+              <button
+                type="button"
+                onClick={() => setVehicleDraft(emptyVehicle)}
+                className="inline-flex h-11 items-center justify-center rounded-md border border-zinc-200 text-sm font-semibold hover:border-red-300"
+              >
+                Reset form
+              </button>
+              <button
+                disabled={isLoading}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-red-700 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-60"
+              >
+                {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+                მანქანის შენახვა
+              </button>
+            </div>
+          </form>
+
+          <div className="overflow-hidden rounded-lg bg-white shadow-sm">
+            <div className="border-b border-zinc-200 p-5">
+              <h2 className="text-xl font-semibold">Featured vehicles</h2>
+              <p className="mt-1 text-sm text-zinc-500">მთავარ გვერდზე გამოჩნდება მხოლოდ active მანქანები.</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[980px] text-left text-sm">
+                <thead className="bg-zinc-50 text-xs uppercase text-zinc-500">
+                  <tr>
+                    <th className="px-4 py-3">Photo</th>
+                    <th className="px-4 py-3">Vehicle</th>
+                    <th className="px-4 py-3">Specs</th>
+                    <th className="px-4 py-3">Years</th>
+                    <th className="px-4 py-3">Price</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100">
+                  {vehicles.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-4 py-10 text-center text-sm text-zinc-500">
+                        ჯერ მანქანები არ არის დამატებული.
+                      </td>
+                    </tr>
+                  ) : (
+                    vehicles.map((vehicle) => (
+                      <tr key={vehicle.id}>
+                        <td className="px-4 py-3">
+                          <div className="relative h-14 w-20 overflow-hidden rounded-md bg-zinc-100">
+                            <Image src={vehicle.imageUrl} alt={`${vehicle.brand} ${vehicle.model}`} fill className="object-cover" />
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 font-semibold">{vehicle.brand} {vehicle.model}</td>
+                        <td className="px-4 py-3">{vehicle.engine} • {vehicle.horsepower} HP • {vehicle.fuel} • {vehicle.drive}</td>
+                        <td className="px-4 py-3">{vehicle.yearFrom} - {vehicle.yearTo}</td>
+                        <td className="px-4 py-3">${vehicle.priceFrom} - ${vehicle.priceTo}</td>
+                        <td className="px-4 py-3">
+                          <span className={`rounded-full px-2 py-1 text-xs font-semibold ${vehicle.active ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-500"}`}>
+                            {vehicle.active ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => setVehicleDraft(vehicle)}
                             className="rounded-md border border-zinc-200 px-3 py-2 text-xs font-semibold hover:border-red-300"
                           >
                             Edit

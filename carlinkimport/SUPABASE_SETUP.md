@@ -37,6 +37,37 @@ for all
 to authenticated
 using (true)
 with check (true);
+
+create table if not exists public.featured_vehicles (
+  id text primary key,
+  brand text not null,
+  model text not null,
+  engine text not null default '',
+  year_from integer not null,
+  year_to integer not null,
+  horsepower integer not null default 0,
+  fuel text not null default '',
+  drive text not null default '',
+  image_url text not null,
+  price_from numeric not null default 0,
+  price_to numeric not null default 0,
+  active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+alter table public.featured_vehicles enable row level security;
+
+create policy "Public can read active vehicles"
+on public.featured_vehicles
+for select
+using (active = true);
+
+create policy "Authenticated admins can manage vehicles"
+on public.featured_vehicles
+for all
+to authenticated
+using (true)
+with check (true);
 ```
 
 Create an admin user in Supabase Auth. Use that email/password on `/admin`.

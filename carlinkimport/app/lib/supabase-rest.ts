@@ -1,4 +1,4 @@
-import { LocationTariff } from "./calculator";
+import { FeaturedVehicle, LocationTariff } from "./calculator";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -29,6 +29,41 @@ function toSupabaseTariff(tariff: LocationTariff) {
     inland_price: tariff.inlandPrice,
     ocean_price: tariff.oceanPrice,
     active: tariff.active,
+  };
+}
+
+function mapVehicle(row: Record<string, unknown>): FeaturedVehicle {
+  return {
+    id: String(row.id),
+    brand: String(row.brand),
+    model: String(row.model),
+    engine: String(row.engine),
+    yearFrom: Number(row.year_from ?? row.yearFrom ?? 0),
+    yearTo: Number(row.year_to ?? row.yearTo ?? 0),
+    horsepower: Number(row.horsepower ?? 0),
+    fuel: String(row.fuel),
+    drive: String(row.drive),
+    imageUrl: String(row.image_url ?? row.imageUrl ?? ""),
+    priceFrom: Number(row.price_from ?? row.priceFrom ?? 0),
+    priceTo: Number(row.price_to ?? row.priceTo ?? 0),
+    active: Boolean(row.active),
+  };
+}
+
+function toSupabaseVehicle(vehicle: FeaturedVehicle) {
+  return {
+    brand: vehicle.brand,
+    model: vehicle.model,
+    engine: vehicle.engine,
+    year_from: vehicle.yearFrom,
+    year_to: vehicle.yearTo,
+    horsepower: vehicle.horsepower,
+    fuel: vehicle.fuel,
+    drive: vehicle.drive,
+    image_url: vehicle.imageUrl,
+    price_from: vehicle.priceFrom,
+    price_to: vehicle.priceTo,
+    active: vehicle.active,
   };
 }
 
@@ -64,6 +99,13 @@ export async function fetchPublicTariffs() {
   return (rows as Record<string, unknown>[]).map(mapTariff);
 }
 
+export async function fetchPublicVehicles() {
+  const rows = await supabaseFetch(
+    "/rest/v1/featured_vehicles?select=*&active=eq.true&order=brand.asc,model.asc",
+  );
+  return (rows as Record<string, unknown>[]).map(mapVehicle);
+}
+
 export async function loginAdmin(email: string, password: string) {
   if (!supabaseUrl || !anonKey) {
     throw new Error("Supabase env vars are not configured.");
@@ -90,6 +132,11 @@ export async function fetchAdminTariffs(token: string) {
   return (rows as Record<string, unknown>[]).map(mapTariff);
 }
 
+export async function fetchAdminVehicles(token: string) {
+  const rows = await supabaseFetch("/rest/v1/featured_vehicles?select=*&order=brand.asc,model.asc", {}, token);
+  return (rows as Record<string, unknown>[]).map(mapVehicle);
+}
+
 export async function upsertAdminTariff(token: string, tariff: LocationTariff) {
   const id = tariff.id || crypto.randomUUID();
   const row = await supabaseFetch(
@@ -113,4 +160,29 @@ export async function upsertAdminTariff(token: string, tariff: LocationTariff) {
   );
 
   return mapTariff((inserted as Record<string, unknown>[])[0]);
+}
+
+export async function upsertAdminVehicle(token: string, vehicle: FeaturedVehicle) {
+  const id = vehicle.id || crypto.randomUUID();
+  const row = await supabaseFetch(
+    `/rest/v1/featured_vehicles?id=eq.${encodeURIComponent(id)}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ id, ...toSupabaseVehicle({ ...vehicle, id }) }),
+    },
+    token,
+  );
+
+  if (Array.isArray(row) && row.length > 0) return mapVehicle(row[0]);
+
+  const inserted = await supabaseFetch(
+    "/rest/v1/featured_vehicles",
+    {
+      method: "POST",
+      body: JSON.stringify({ id, ...toSupabaseVehicle({ ...vehicle, id }) }),
+    },
+    token,
+  );
+
+  return mapVehicle((inserted as Record<string, unknown>[])[0]);
 }
