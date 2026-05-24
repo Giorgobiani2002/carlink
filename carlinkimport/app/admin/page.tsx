@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import { Lock, Loader2, Plus, Save, Shield, ToggleLeft, ToggleRight } from "lucide-react";
+import { Loader2, Lock, Plus, Save, Shield, ToggleLeft, ToggleRight, Upload } from "lucide-react";
 import { AuctionProvider, FeaturedVehicle, LocationTariff } from "../lib/calculator";
 import {
   fetchAdminTariffs,
@@ -11,6 +11,7 @@ import {
   loginAdmin,
   upsertAdminTariff,
   upsertAdminVehicle,
+  uploadAdminVehicleImage,
 } from "../lib/supabase-rest";
 
 const emptyTariff: LocationTariff = {
@@ -52,45 +53,56 @@ export default function AdminPage() {
   const [draft, setDraft] = useState<LocationTariff>(emptyTariff);
   const [vehicles, setVehicles] = useState<FeaturedVehicle[]>([]);
   const [vehicleDraft, setVehicleDraft] = useState<FeaturedVehicle>(emptyVehicle);
+  const [vehicleImageFile, setVehicleImageFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [message, setMessage] = useState("");
 
-  const loadTariffs = useCallback(async (accessToken = token) => {
-    if (!hasSupabaseConfig) {
-      setTariffs([]);
-      setMessage("Supabase env vars არ არის დამატებული.");
-      return;
-    }
+  const loadTariffs = useCallback(
+    async (accessToken = token) => {
+      if (!hasSupabaseConfig) {
+        setTariffs([]);
+        setMessage("Supabase env vars დამატებული არ არის.");
+        return;
+      }
 
-    setIsLoading(true);
-    setMessage("");
-    try {
-      setTariffs(await fetchAdminTariffs(accessToken));
-    } catch {
-      setMessage("ტარიფების ჩატვირთვა ვერ მოხერხდა. თავიდან შედით admin-ში.");
-      window.localStorage.removeItem("carlink_admin_token");
-      setToken("");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [token]);
+      setIsLoading(true);
+      setMessage("");
+      try {
+        setTariffs(await fetchAdminTariffs(accessToken));
+      } catch {
+        setMessage("ტარიფების ჩატვირთვა ვერ მოხერხდა. თავიდან შედი admin-ში.");
+        window.localStorage.removeItem("carlink_admin_token");
+        setToken("");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [token],
+  );
 
-  const loadVehicles = useCallback(async (accessToken = token) => {
-    if (!hasSupabaseConfig) {
-      setVehicles([]);
-      return;
-    }
+  const loadVehicles = useCallback(
+    async (accessToken = token) => {
+      if (!hasSupabaseConfig) {
+        setVehicles([]);
+        return;
+      }
 
-    try {
-      setVehicles(await fetchAdminVehicles(accessToken));
-    } catch {
-      setMessage("მანქანების ჩატვირთვა ვერ მოხერხდა.");
-    }
-  }, [token]);
+      try {
+        setVehicles(await fetchAdminVehicles(accessToken));
+      } catch {
+        setMessage("მანქანების ჩატვირთვა ვერ მოხერხდა.");
+      }
+    },
+    [token],
+  );
 
-  const refreshAdminData = useCallback(async (accessToken = token) => {
-    await Promise.all([loadTariffs(accessToken), loadVehicles(accessToken)]);
-  }, [loadTariffs, loadVehicles, token]);
+  const refreshAdminData = useCallback(
+    async (accessToken = token) => {
+      await Promise.all([loadTariffs(accessToken), loadVehicles(accessToken)]);
+    },
+    [loadTariffs, loadVehicles, token],
+  );
 
   useEffect(() => {
     const stored = window.localStorage.getItem("carlink_admin_token");
@@ -121,7 +133,7 @@ export default function AdminPage() {
     event.preventDefault();
 
     if (!draft.state || !draft.city || !draft.yardName || !draft.port) {
-      setMessage("შეავსეთ შტატი, ქალაქი, yard და პორტი.");
+      setMessage("შეავსე შტატი, ქალაქი, yard და პორტი.");
       return;
     }
 
@@ -138,7 +150,7 @@ export default function AdminPage() {
       setDraft(emptyTariff);
       setMessage("ტარიფი შენახულია.");
     } catch {
-      setMessage("შენახვა ვერ მოხერხდა. შეამოწმეთ Supabase table/RLS permissions.");
+      setMessage("შენახვა ვერ მოხერხდა. გადაამოწმე Supabase table და permissions.");
     } finally {
       setIsLoading(false);
     }
@@ -148,7 +160,7 @@ export default function AdminPage() {
     event.preventDefault();
 
     if (!vehicleDraft.brand || !vehicleDraft.model || !vehicleDraft.imageUrl) {
-      setMessage("მანქანისთვის შეავსე brand, model და image url.");
+      setMessage("მანქანისთვის შეავსე brand, model და photo.");
       return;
     }
 
@@ -163,6 +175,7 @@ export default function AdminPage() {
       const saved = await upsertAdminVehicle(token, vehicleDraft);
       setVehicles((current) => [saved, ...current.filter((vehicle) => vehicle.id !== saved.id)]);
       setVehicleDraft(emptyVehicle);
+      setVehicleImageFile(null);
       setMessage("მანქანა შენახულია.");
     } catch {
       setMessage("მანქანის შენახვა ვერ მოხერხდა.");
@@ -171,11 +184,37 @@ export default function AdminPage() {
     }
   };
 
+  const handleVehicleImageUpload = async () => {
+    if (!vehicleImageFile) {
+      setMessage("აირჩიე ფოტო ასატვირთად.");
+      return;
+    }
+
+    if (!hasSupabaseConfig) {
+      setMessage("Supabase არ არის დაკავშირებული.");
+      return;
+    }
+
+    setIsUploadingImage(true);
+    setMessage("");
+    try {
+      const imageUrl = await uploadAdminVehicleImage(token, vehicleImageFile);
+      setVehicleDraft((current) => ({ ...current, imageUrl }));
+      setMessage("ფოტო ატვირთულია.");
+    } catch {
+      setMessage("ფოტოს ატვირთვა ვერ მოხერხდა.");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   const logout = () => {
     window.localStorage.removeItem("carlink_admin_token");
     setToken("");
     setTariffs([]);
     setVehicles([]);
+    setVehicleDraft(emptyVehicle);
+    setVehicleImageFile(null);
   };
 
   if (!token && hasSupabaseConfig) {
@@ -188,7 +227,7 @@ export default function AdminPage() {
             </div>
             <div>
               <p className="text-sm text-zinc-400">Carlink Admin</p>
-              <h1 className="text-2xl font-semibold">ტარიფების მართვა</h1>
+              <h1 className="text-2xl font-semibold">ადმინ პანელი</h1>
             </div>
           </div>
 
@@ -209,7 +248,7 @@ export default function AdminPage() {
               placeholder="Password"
               required
             />
-            {message && <p className="rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-100">{message}</p>}
+            {message ? <p className="rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-100">{message}</p> : null}
             <button className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-red-700 text-sm font-semibold text-white hover:bg-red-600">
               {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Shield className="size-4" />}
               შესვლა
@@ -226,7 +265,7 @@ export default function AdminPage() {
         <div className="mb-6 flex flex-col justify-between gap-4 rounded-lg bg-zinc-950 p-5 text-white md:flex-row md:items-center">
           <div>
             <p className="text-sm text-red-300">Carlink Admin</p>
-            <h1 className="text-3xl font-semibold">Location tariff manager</h1>
+            <h1 className="text-3xl font-semibold">Tariffs and featured vehicles</h1>
           </div>
           <div className="flex gap-2">
             <button
@@ -241,7 +280,7 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {message && <div className="mb-5 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">{message}</div>}
+        {message ? <div className="mb-5 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">{message}</div> : null}
 
         <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
           <form className="rounded-lg bg-white p-5 shadow-sm" onSubmit={handleSave}>
@@ -322,7 +361,7 @@ export default function AdminPage() {
                   {tariffs.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="px-4 py-10 text-center text-sm text-zinc-500">
-                        ჯერ ტარიფები არ არის დამატებული.
+                        ჯერ ტარიფები დამატებული არ არის.
                       </td>
                     </tr>
                   ) : (
@@ -377,20 +416,72 @@ export default function AdminPage() {
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Engine" value={vehicleDraft.engine} onChange={(value) => setVehicleDraft({ ...vehicleDraft, engine: value })} />
-                <Field label="Horsepower" type="number" value={String(vehicleDraft.horsepower)} onChange={(value) => setVehicleDraft({ ...vehicleDraft, horsepower: Number(value) })} />
+                <Field
+                  label="Horsepower"
+                  type="number"
+                  value={String(vehicleDraft.horsepower)}
+                  onChange={(value) => setVehicleDraft({ ...vehicleDraft, horsepower: Number(value) })}
+                />
               </div>
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Year from" type="number" value={String(vehicleDraft.yearFrom)} onChange={(value) => setVehicleDraft({ ...vehicleDraft, yearFrom: Number(value) })} />
-                <Field label="Year to" type="number" value={String(vehicleDraft.yearTo)} onChange={(value) => setVehicleDraft({ ...vehicleDraft, yearTo: Number(value) })} />
+                <Field
+                  label="Year from"
+                  type="number"
+                  value={String(vehicleDraft.yearFrom)}
+                  onChange={(value) => setVehicleDraft({ ...vehicleDraft, yearFrom: Number(value) })}
+                />
+                <Field
+                  label="Year to"
+                  type="number"
+                  value={String(vehicleDraft.yearTo)}
+                  onChange={(value) => setVehicleDraft({ ...vehicleDraft, yearTo: Number(value) })}
+                />
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Fuel" value={vehicleDraft.fuel} onChange={(value) => setVehicleDraft({ ...vehicleDraft, fuel: value })} />
                 <Field label="Drive" value={vehicleDraft.drive} onChange={(value) => setVehicleDraft({ ...vehicleDraft, drive: value })} />
               </div>
-              <Field label="Image URL" value={vehicleDraft.imageUrl} onChange={(value) => setVehicleDraft({ ...vehicleDraft, imageUrl: value })} />
+
+              <div className="grid gap-3">
+                <label className="grid gap-2 text-sm font-semibold">
+                  Vehicle photo
+                  <input
+                    className="block w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-950 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-950 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white"
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) => setVehicleImageFile(event.target.files?.[0] ?? null)}
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={handleVehicleImageUpload}
+                  disabled={!vehicleImageFile || isUploadingImage}
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-zinc-200 text-sm font-semibold hover:border-red-300 disabled:opacity-60"
+                >
+                  {isUploadingImage ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
+                  {isUploadingImage ? "Uploading..." : "Upload photo"}
+                </button>
+                <Field label="Image URL" value={vehicleDraft.imageUrl} onChange={(value) => setVehicleDraft({ ...vehicleDraft, imageUrl: value })} />
+                {vehicleDraft.imageUrl ? (
+                  <div className="relative aspect-[16/10] overflow-hidden rounded-md border border-zinc-200 bg-zinc-100">
+                    <Image src={vehicleDraft.imageUrl} alt="Vehicle preview" fill className="object-cover" />
+                  </div>
+                ) : null}
+              </div>
+
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Price from" type="number" value={String(vehicleDraft.priceFrom)} onChange={(value) => setVehicleDraft({ ...vehicleDraft, priceFrom: Number(value) })} />
-                <Field label="Price to" type="number" value={String(vehicleDraft.priceTo)} onChange={(value) => setVehicleDraft({ ...vehicleDraft, priceTo: Number(value) })} />
+                <Field
+                  label="Price from"
+                  type="number"
+                  value={String(vehicleDraft.priceFrom)}
+                  onChange={(value) => setVehicleDraft({ ...vehicleDraft, priceFrom: Number(value) })}
+                />
+                <Field
+                  label="Price to"
+                  type="number"
+                  value={String(vehicleDraft.priceTo)}
+                  onChange={(value) => setVehicleDraft({ ...vehicleDraft, priceTo: Number(value) })}
+                />
               </div>
               <button
                 type="button"
@@ -402,7 +493,10 @@ export default function AdminPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setVehicleDraft(emptyVehicle)}
+                onClick={() => {
+                  setVehicleDraft(emptyVehicle);
+                  setVehicleImageFile(null);
+                }}
                 className="inline-flex h-11 items-center justify-center rounded-md border border-zinc-200 text-sm font-semibold hover:border-red-300"
               >
                 Reset form
@@ -439,7 +533,7 @@ export default function AdminPage() {
                   {vehicles.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="px-4 py-10 text-center text-sm text-zinc-500">
-                        ჯერ მანქანები არ არის დამატებული.
+                        ჯერ მანქანები დამატებული არ არის.
                       </td>
                     </tr>
                   ) : (
@@ -450,18 +544,33 @@ export default function AdminPage() {
                             <Image src={vehicle.imageUrl} alt={`${vehicle.brand} ${vehicle.model}`} fill className="object-cover" />
                           </div>
                         </td>
-                        <td className="px-4 py-3 font-semibold">{vehicle.brand} {vehicle.model}</td>
-                        <td className="px-4 py-3">{vehicle.engine} • {vehicle.horsepower} HP • {vehicle.fuel} • {vehicle.drive}</td>
-                        <td className="px-4 py-3">{vehicle.yearFrom} - {vehicle.yearTo}</td>
-                        <td className="px-4 py-3">${vehicle.priceFrom} - ${vehicle.priceTo}</td>
+                        <td className="px-4 py-3 font-semibold">
+                          {vehicle.brand} {vehicle.model}
+                        </td>
                         <td className="px-4 py-3">
-                          <span className={`rounded-full px-2 py-1 text-xs font-semibold ${vehicle.active ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-500"}`}>
+                          {vehicle.engine} • {vehicle.horsepower} HP • {vehicle.fuel} • {vehicle.drive}
+                        </td>
+                        <td className="px-4 py-3">
+                          {vehicle.yearFrom} - {vehicle.yearTo}
+                        </td>
+                        <td className="px-4 py-3">
+                          ${vehicle.priceFrom} - ${vehicle.priceTo}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                              vehicle.active ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-500"
+                            }`}
+                          >
                             {vehicle.active ? "Active" : "Inactive"}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-right">
                           <button
-                            onClick={() => setVehicleDraft(vehicle)}
+                            onClick={() => {
+                              setVehicleDraft(vehicle);
+                              setVehicleImageFile(null);
+                            }}
                             className="rounded-md border border-zinc-200 px-3 py-2 text-xs font-semibold hover:border-red-300"
                           >
                             Edit

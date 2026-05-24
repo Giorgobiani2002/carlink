@@ -4,6 +4,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export const hasSupabaseConfig = Boolean(supabaseUrl && anonKey);
+const vehicleImageBucket = "vehicle-images";
 
 function mapTariff(row: Record<string, unknown>): LocationTariff {
   return {
@@ -90,6 +91,10 @@ async function supabaseFetch(path: string, init: RequestInit = {}, token?: strin
 
   if (response.status === 204) return null;
   return response.json();
+}
+
+function sanitizeFileName(name: string) {
+  return name.replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
 }
 
 export async function fetchPublicTariffs() {
@@ -185,4 +190,31 @@ export async function upsertAdminVehicle(token: string, vehicle: FeaturedVehicle
   );
 
   return mapVehicle((inserted as Record<string, unknown>[])[0]);
+}
+
+export async function uploadAdminVehicleImage(token: string, file: File) {
+  if (!supabaseUrl || !anonKey) {
+    throw new Error("Supabase env vars are not configured.");
+  }
+
+  const extension = file.name.includes(".") ? file.name.split(".").pop() : "jpg";
+  const path = `featured/${crypto.randomUUID()}-${sanitizeFileName(file.name || `image.${extension}`)}`;
+
+  const response = await fetch(`${supabaseUrl}/storage/v1/object/${vehicleImageBucket}/${path}`, {
+    method: "POST",
+    headers: {
+      apikey: anonKey,
+      Authorization: `Bearer ${token}`,
+      "x-upsert": "true",
+      "Content-Type": file.type || "application/octet-stream",
+    },
+    body: file,
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "Image upload failed.");
+  }
+
+  return `${supabaseUrl}/storage/v1/object/public/${vehicleImageBucket}/${path}`;
 }
