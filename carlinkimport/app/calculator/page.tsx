@@ -2,14 +2,12 @@
 
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Calculator, Car, Check, Loader2, MapPin, Phone, Route, Ship, ShieldCheck } from "lucide-react";
+import { Calculator, Car, Loader2, MapPin, Phone, Route, Ship, ShieldCheck } from "lucide-react";
 import {
   AuctionProvider,
-  OptionalService,
   VehicleType,
   calculateImportTotal,
   formatUsd,
-  optionalServices,
   vehicleTypes,
   type LocationTariff,
 } from "../lib/calculator";
@@ -29,7 +27,6 @@ export default function CalculatorPage() {
   const [tariffId, setTariffId] = useState("");
   const [vehicleType, setVehicleType] = useState<VehicleType>("sedan");
   const [bid, setBid] = useState("6500");
-  const [selectedServices, setSelectedServices] = useState<OptionalService[]>(["titleCheck"]);
 
   useEffect(() => {
     if (!hasSupabaseConfig) return;
@@ -77,15 +74,9 @@ export default function CalculatorPage() {
           auction,
           tariff: selectedTariff,
           vehicleType,
-          selectedServices,
+          selectedServices: [],
         })
       : null;
-
-  const toggleService = (service: OptionalService) => {
-    setSelectedServices((current) =>
-      current.includes(service) ? current.filter((item) => item !== service) : [...current, service],
-    );
-  };
 
   return (
     <main className="min-h-screen bg-[#f5f0e8] text-zinc-950">
@@ -124,12 +115,8 @@ export default function CalculatorPage() {
                 </div>
               </div>
               <div className="mt-5 space-y-3 rounded-2xl bg-white/5 p-4">
-                <Line label="Bid amount" value={result ? formatUsd(result.bid) : "-"} />
                 <Line label="Auction fee" value={result ? formatUsd(result.auctionFee) : "-"} />
-                <Line label="Inland" value={result ? formatUsd(result.inland) : "-"} />
-                <Line label="Ocean" value={result ? formatUsd(result.ocean) : "-"} />
-                <Line label="Service" value={result ? formatUsd(result.serviceFee) : "-"} />
-                <Line label="Optional" value={result ? formatUsd(result.optionalFees) : "-"} />
+                <Line label="Transportation total" value={result ? formatUsd(result.transportTotal) : "-"} />
               </div>
             </div>
           </div>
@@ -243,35 +230,8 @@ export default function CalculatorPage() {
               </label>
             </div>
 
-            <div>
-              <span className="mb-3 block text-sm font-semibold">დამატებითი სერვისები</span>
-              <div className="grid gap-3 md:grid-cols-3">
-                {(Object.keys(optionalServices) as OptionalService[]).map((service) => {
-                  const active = selectedServices.includes(service);
-                  return (
-                    <button
-                      key={service}
-                      type="button"
-                      onClick={() => toggleService(service)}
-                      className={`flex min-h-20 items-start gap-3 rounded-2xl border p-3 text-left transition ${
-                        active ? "border-red-700 bg-red-50" : "border-zinc-200 hover:border-zinc-400"
-                      }`}
-                    >
-                      <span
-                        className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded border ${
-                          active ? "border-red-700 bg-red-700 text-white" : "border-zinc-300"
-                        }`}
-                      >
-                        {active && <Check className="size-3" />}
-                      </span>
-                      <span>
-                        <span className="block text-sm font-semibold">{optionalServices[service].label}</span>
-                        <span className="text-sm text-zinc-500">{formatUsd(optionalServices[service].price)}</span>
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-600">
+              შედეგში ითვლება მხოლოდ აუქციონის fee და ტრანსპორტირება ჯამში.
             </div>
           </div>
         </div>
@@ -295,14 +255,10 @@ export default function CalculatorPage() {
                 </div>
 
                 <div className="space-y-3 rounded-2xl bg-white/5 p-4">
-                  <Line label="Bid amount" value={formatUsd(result.bid)} />
                   <Line label="Auction fee" value={formatUsd(result.auctionFee)} />
-                  <Line label="Inland transport" value={formatUsd(result.inland)} />
-                  <Line label="Ocean shipping" value={formatUsd(result.ocean)} />
-                  <Line label="Carlink service" value={formatUsd(result.serviceFee)} />
-                  <Line label="Optional services" value={formatUsd(result.optionalFees)} />
+                  <Line label="Transportation total" value={formatUsd(result.transportTotal)} />
                   <div className="border-t border-white/10 pt-3">
-                    <Line strong label="Estimated total" value={formatUsd(result.total)} />
+                    <Line strong label="Fee + transport" value={formatUsd(result.total)} />
                   </div>
                 </div>
               </>

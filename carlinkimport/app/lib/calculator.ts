@@ -16,12 +16,10 @@ export type LocationTariff = {
 export type OptionalService = "titleCheck" | "insurance" | "priorityDelivery";
 
 export type CalculationResult = {
-  bid: number;
   auctionFee: number;
   inland: number;
   ocean: number;
-  serviceFee: number;
-  optionalFees: number;
+  transportTotal: number;
   total: number;
 };
 
@@ -222,20 +220,14 @@ export function calculateImportTotal(params: {
   const auctionFee = calculateAuctionFee(params.bid, params.auction);
   const inland = params.tariff.inlandPrice * multiplier;
   const ocean = params.tariff.oceanPrice * multiplier;
-  const serviceFee = Math.max(450, params.bid * 0.04);
-  const optionalFees = params.selectedServices.reduce(
-    (sum, service) => sum + optionalServices[service].price,
-    0,
-  );
+  const transportTotal = inland + ocean;
 
   return {
-    bid: params.bid,
     auctionFee,
     inland,
     ocean,
-    serviceFee,
-    optionalFees,
-    total: params.bid + auctionFee + inland + ocean + serviceFee + optionalFees,
+    transportTotal,
+    total: auctionFee + transportTotal,
   };
 }
 
