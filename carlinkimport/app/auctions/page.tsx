@@ -3,9 +3,21 @@ import Link from "next/link";
 import { ArrowRight, Bell, Calculator, Search } from "lucide-react";
 
 const auctionSources = [
-  { name: "Copart", text: "დაზიანებული, clean title და insurance vehicles დიდი არჩევანით.", image: "/slide11.png" },
-  { name: "IAAI", text: "branch-based აუქციონები, title check და განსხვავებული inventory.", image: "/slide22.png" },
-  { name: "Dealer search", text: "კონკრეტული მოდელის მოძიება პარტნიორი დილერებიდან.", image: "/slide4.jpg" },
+  {
+    name: "Copart",
+    text: "დაზიანებული, clean title და insurance მანქანების დიდი არჩევანი ამერიკის სხვადასხვა აუქციონიდან.",
+    image: "/logistic.jpg",
+  },
+  {
+    name: "IAAI",
+    text: "branch-based აუქციონები, lot-ის დეტალური შემოწმება და სხვადასხვა ტიპის inventory.",
+    image: "/logistic2.jpg",
+  },
+  {
+    name: "Dealer search",
+    text: "კონკრეტული მოდელის მოძიება პარტნიორი დილერებიდან და ბაზრიდან, მოთხოვნის მიხედვით.",
+    image: "/container.jpg",
+  },
 ];
 
 export default function AuctionPage() {
@@ -18,23 +30,33 @@ export default function AuctionPage() {
               <Bell className="size-4 text-red-400" />
               Auction desk
             </div>
-            <h1 className="text-4xl font-semibold tracking-normal md:text-6xl">აუქციონების გვერდი მალე სრულად დაემატება</h1>
+            <h1 className="max-w-3xl text-4xl font-semibold leading-[1.05] md:text-5xl lg:text-6xl">
+              აუქციონებიდან მანქანის შერჩევა მარტივად და კონტროლით.
+            </h1>
             <p className="mt-5 max-w-2xl text-base leading-8 text-zinc-300">
-              მანამდე გუნდი დაგეხმარებათ კონკრეტული მანქანის მოძიებაში, lot-ის შემოწმებაში და ფასის წინასწარ დათვლაში.
+              გუნდი გეხმარება კონკრეტული მანქანის მოძიებაში, lot-ის შემოწმებაში და იმპორტის
+              ხარჯის წინასწარ დათვლაში, სანამ გადაწყვეტილებას მიიღებ.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/calculator" className="inline-flex h-12 items-center gap-2 rounded-md bg-red-700 px-5 text-sm font-semibold text-white hover:bg-red-600">
+              <Link
+                href="/calculator"
+                className="inline-flex h-12 items-center gap-2 rounded-md bg-red-700 px-5 text-sm font-semibold text-white hover:bg-red-600"
+              >
                 <Calculator className="size-4" />
                 კალკულატორი
               </Link>
-              <a href="tel:+995544440506" className="inline-flex h-12 items-center gap-2 rounded-md border border-white/15 px-5 text-sm font-semibold hover:bg-white/10">
+              <a
+                href="tel:+995544440506"
+                className="inline-flex h-12 items-center gap-2 rounded-md border border-white/15 px-5 text-sm font-semibold hover:bg-white/10"
+              >
                 კონსულტაცია
                 <ArrowRight className="size-4" />
               </a>
             </div>
           </div>
+
           <div className="relative min-h-[320px] overflow-hidden rounded-lg border border-white/10">
-            <Image src="/container.jpg" alt="Car import container" fill className="object-cover opacity-80" priority />
+            <Image src="/container.jpg" alt="Car import logistics" fill className="object-cover opacity-80" priority />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
           </div>
         </div>
