@@ -5,14 +5,13 @@ import Link from "next/link";
 import { Calculator, Car, Check, Loader2, MapPin, Phone, Route, Ship, ShieldCheck } from "lucide-react";
 import {
   AuctionProvider,
-  LocationTariff,
   OptionalService,
   VehicleType,
   calculateImportTotal,
   formatUsd,
   optionalServices,
-  sampleTariffs,
   vehicleTypes,
+  type LocationTariff,
 } from "../lib/calculator";
 import { fetchPublicTariffs, hasSupabaseConfig } from "../lib/supabase-rest";
 
@@ -20,10 +19,10 @@ const inputClass =
   "h-12 w-full rounded-xl border border-zinc-200 bg-white px-4 text-sm text-zinc-950 outline-none transition focus:border-red-700 focus:ring-4 focus:ring-red-700/10";
 
 export default function CalculatorPage() {
-  const [tariffs, setTariffs] = useState<LocationTariff[]>(sampleTariffs);
+  const [tariffs, setTariffs] = useState<LocationTariff[]>([]);
   const [isLoading, setIsLoading] = useState(hasSupabaseConfig);
   const [dataMessage, setDataMessage] = useState(
-    hasSupabaseConfig ? "" : "Supabase ჯერ არ არის დაკავშირებული და დროებით sample ტარიფებია ჩატვირთული.",
+    hasSupabaseConfig ? "" : "Supabase ჯერ არ არის დაკავშირებული. ტარიფები გამოჩნდება დაკავშირების შემდეგ.",
   );
   const [auction, setAuction] = useState<AuctionProvider>("copart");
   const [state, setState] = useState("");
@@ -41,11 +40,11 @@ export default function CalculatorPage() {
           setTariffs(items);
           setDataMessage("");
         } else {
-          setDataMessage("აქტიური ტარიფები ჯერ არ არის დამატებული და ნაჩვენებია sample მონაცემები.");
+          setDataMessage("აქტიური ტარიფები ჯერ არ არის დამატებული.");
         }
       })
       .catch(() => {
-        setDataMessage("ტარიფების ჩატვირთვა ვერ მოხერხდა და ნაჩვენებია sample მონაცემები.");
+        setDataMessage("ტარიფების ჩატვირთვა ვერ მოხერხდა.");
       })
       .finally(() => setIsLoading(false));
   }, []);
@@ -281,7 +280,7 @@ export default function CalculatorPage() {
           <div className="rounded-3xl border border-black/10 bg-[#171717] p-5 text-white shadow-sm">
             {!selectedTariff ? (
               <div className="rounded-2xl border border-dashed border-white/20 p-6 text-center text-zinc-300">
-                ამ აუქციონისთვის ტარიფი ჯერ არ არის დამატებული.
+                ამ აუქციონისთვის ტარიფი ჯერ არ არის დამატებული. ჯერ დაამატე ლოკაცია და ფასები admin-იდან.
               </div>
             ) : !result ? (
               <div className="rounded-2xl border border-dashed border-white/20 p-6 text-center text-zinc-300">

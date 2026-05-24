@@ -2,7 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Lock, Loader2, Plus, Save, Shield, ToggleLeft, ToggleRight } from "lucide-react";
-import { AuctionProvider, LocationTariff, sampleTariffs } from "../lib/calculator";
+import { AuctionProvider, LocationTariff } from "../lib/calculator";
 import {
   fetchAdminTariffs,
   hasSupabaseConfig,
@@ -36,8 +36,8 @@ export default function AdminPage() {
 
   const loadTariffs = useCallback(async (accessToken = token) => {
     if (!hasSupabaseConfig) {
-      setTariffs(sampleTariffs);
-      setMessage("Supabase env vars არ არის დამატებული. Admin demo რეჟიმშია და ცვლილებები არ შეინახება.");
+      setTariffs([]);
+      setMessage("Supabase env vars არ არის დამატებული.");
       return;
     }
 
@@ -88,10 +88,7 @@ export default function AdminPage() {
     }
 
     if (!hasSupabaseConfig) {
-      const item = { ...draft, id: draft.id || crypto.randomUUID() };
-      setTariffs((current) => [item, ...current.filter((tariff) => tariff.id !== item.id)]);
-      setDraft(emptyTariff);
-      setMessage("Demo რეჟიმში ტარიფი დაემატა მხოლოდ ბრაუზერის სესიაში.");
+      setMessage("Supabase არ არის დაკავშირებული და შენახვა ვერ მოხერხდა.");
       return;
     }
 
@@ -256,36 +253,44 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100">
-                  {tariffs.map((tariff) => (
-                    <tr key={tariff.id}>
-                      <td className="px-4 py-3 font-semibold uppercase">{tariff.auction}</td>
-                      <td className="px-4 py-3">
-                        {tariff.city}, {tariff.state}
-                      </td>
-                      <td className="px-4 py-3">{tariff.yardName}</td>
-                      <td className="px-4 py-3">{tariff.port}</td>
-                      <td className="px-4 py-3">
-                        ${tariff.inlandPrice} / ${tariff.oceanPrice}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                            tariff.active ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-500"
-                          }`}
-                        >
-                          {tariff.active ? "Active" : "Inactive"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => setDraft(tariff)}
-                          className="rounded-md border border-zinc-200 px-3 py-2 text-xs font-semibold hover:border-red-300"
-                        >
-                          Edit
-                        </button>
+                  {tariffs.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-4 py-10 text-center text-sm text-zinc-500">
+                        ჯერ ტარიფები არ არის დამატებული.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    tariffs.map((tariff) => (
+                      <tr key={tariff.id}>
+                        <td className="px-4 py-3 font-semibold uppercase">{tariff.auction}</td>
+                        <td className="px-4 py-3">
+                          {tariff.city}, {tariff.state}
+                        </td>
+                        <td className="px-4 py-3">{tariff.yardName}</td>
+                        <td className="px-4 py-3">{tariff.port}</td>
+                        <td className="px-4 py-3">
+                          ${tariff.inlandPrice} / ${tariff.oceanPrice}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                              tariff.active ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-500"
+                            }`}
+                          >
+                            {tariff.active ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => setDraft(tariff)}
+                            className="rounded-md border border-zinc-200 px-3 py-2 text-xs font-semibold hover:border-red-300"
+                          >
+                            Edit
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
