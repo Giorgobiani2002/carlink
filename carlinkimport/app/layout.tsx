@@ -1,31 +1,23 @@
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "./components/Header";
-// import ClientWrapper from "./components/ClientWrapper";
 import Footer from "./components/Footer";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  display: 'swap',
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: 'swap',
-});
 export const metadata = {
-  title: "CARLINK",
-  description: "ავტომობილების იმპორტი ამერიკიდან და ჩინეთიდან",
+  title: "Carlink Auto Import | ავტომობილების იმპორტი",
+  description:
+    "ავტომობილების იმპორტი ამერიკიდან, კანადიდან და ჩინეთიდან. Copart, IAAI, ლოგისტიკა, კალკულატორი და სრული მხარდაჭერა.",
+  keywords: [
+    "ავტომობილების იმპორტი",
+    "მანქანის ჩამოყვანა",
+    "Copart Georgia",
+    "IAAI Georgia",
+    "USA auto import",
+    "Carlink",
+  ],
   icons: {
-    icon: [
-      
-    
-      { url: "/logocarlink.webp", sizes: "512x512" },
-    ],
+    icon: [{ url: "/logocarlink.webp", sizes: "512x512" }],
   },
-};;
+};
 
 export default function RootLayout({
   children,
@@ -34,15 +26,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ka">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {/* <ClientWrapper> */}
-          <Header />
-          {children}
-          <Footer />
-        {/* </ClientWrapper> */}
-
+      <body>
+        <Header />
+        {children}
+        <Footer />
       </body>
     </html>
   );

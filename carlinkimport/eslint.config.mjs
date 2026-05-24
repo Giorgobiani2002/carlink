@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "app/components/HomeS*.tsx",
+    "app/components/ui/**",
+    "components/ui/background-beams.tsx",
   ]),
 ]);
 

@@ -1,179 +1,102 @@
 "use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState } from "react";
-import { Phone, Menu, X } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { Calculator, Menu, Phone, X } from "lucide-react";
+
+const navItems = [
+  { label: "მთავარი", href: "/" },
+  { label: "აუქციონები", href: "/auctions" },
+  { label: "კალკულატორი", href: "/calculator" },
+  { label: "სერვისები", href: "/#services" },
+  { label: "კონტაქტი", href: "/#contact" },
+];
 
 export default function Header() {
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  const scrollToSection = (id: string) => {
-    const section = document.getElementById(id);
-    if (section) {
-      const yOffset = -120; // offset in px
-      const y =
-        section.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: y, behavior: "smooth" });
-      setIsMenuOpen(false); // close mobile menu if open
-    }
-  };
+  const close = () => setIsMenuOpen(false);
 
   return (
-    <header className="bg-black py-4 shadow-md sticky top-0 z-50">
-      <nav className="max-w-[1220px] max-h-[81px] m-auto w-full px-4 md:px-6 font-serif text-[18px] flex justify-between items-center">
-        {/* Logo */}
-        <Link href="/">
-    <Image
-      src="/carlinkfooter.webp"
-      width={140}
-      height={87}
-      alt="Carlink Logo"
-      className="mt-3 cursor-pointer" // optional cursor change
-    />
-  </Link>
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-zinc-950/95 shadow-lg shadow-black/10 backdrop-blur">
+      <nav className="mx-auto flex h-[82px] max-w-7xl items-center justify-between px-4 md:px-6">
+        <Link href="/" className="flex items-center gap-3" onClick={close}>
+          <Image src="/carlinkfooter.webp" width={118} height={64} alt="Carlink Logo" className="h-auto w-[118px]" priority />
+        </Link>
 
-        {/* Desktop Navigation */}
-        <ul className="hidden md:flex max-w-[700px] w-full justify-between text-white gap-6">
-          <li>
-            <Link
-              href={"/auctions"}
-              className="cursor-pointer hover:text-red-400 transition-colors"
-            >
-              აუქციონი
-            </Link>
-          </li>
-          <li>
-            <button
-              onClick={() => scrollToSection("home")}
-              className="cursor-pointer hover:text-red-400 transition-colors"
-            >
-              მთავარი
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => scrollToSection("aboutus")}
-              className="cursor-pointer hover:text-red-400 transition-colors"
-            >
-              ჩვენს შესახებ
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => scrollToSection("services")}
-              className="cursor-pointer hover:text-red-400 transition-colors"
-            >
-              სერვისები
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => scrollToSection("calculator")}
-              className="cursor-pointer hover:text-red-400 transition-colors"
-            >
-              კალკულატორი
-            </button>
-          </li>
+        <ul className="hidden items-center gap-1 md:flex">
+          {navItems.map((item) => {
+            const baseHref = item.href.split("#")[0];
+            const active = item.href === "/" ? pathname === "/" : baseHref !== "/" && pathname.startsWith(baseHref);
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
+                    active ? "bg-white text-zinc-950" : "text-zinc-200 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
 
-        {/* Desktop Contact */}
-        <div className="hidden md:flex gap-2.5 items-center">
-          <Phone size={26} className="text-red-800" />
-          <div className="text-white text-right">
-          <div className="text-white text-right">
-  <h4 className="text-sm font-semibold">დაგვიკავშირდით</h4>
-  <span className="font-bold text-red-800 font-mono text-lg tabular-nums">
-    0322197955
-  </span>
-</div>
-
-</div>
-
+        <div className="hidden items-center gap-3 md:flex">
+          <a href="tel:+995544440506" className="flex items-center gap-2 text-sm font-semibold text-white">
+            <Phone className="size-4 text-red-400" />
+            544 440 506
+          </a>
+          <Link
+            href="/calculator"
+            className="inline-flex h-10 items-center gap-2 rounded-md bg-red-700 px-4 text-sm font-semibold text-white transition hover:bg-red-600"
+          >
+            <Calculator className="size-4" />
+            დათვლა
+          </Link>
         </div>
 
-        {/* Mobile Menu Icon */}
         <button
-          onClick={toggleMenu}
-          className="md:hidden p-2 text-white z-[100] cursor-pointer"
+          onClick={() => setIsMenuOpen((value) => !value)}
+          className="inline-flex size-10 items-center justify-center rounded-md border border-white/15 text-white md:hidden"
+          aria-label="Toggle navigation"
         >
-          {isMenuOpen ? (
-            <X className="text-black" size={32} />
-          ) : (
-            <Menu size={32} />
-          )}
+          {isMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
       </nav>
 
-      {/* Mobile Menu */}
-      <div
-        className={`md:hidden fixed top-0 right-0 w-3/4 max-w-sm h-screen bg-white transition-transform duration-300 ease-in-out shadow-2xl z-40 p-6 pt-20 ${
-          isMenuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <ul className="flex flex-col items-start gap-4 text-black text-xl font-semibold border-b pb-4 border-gray-100">
-          <li>
-            <Link
-              href={"/auctions"}
-              onClick={() => setIsMenuOpen(false)}
-              className="block py-2"
-            >
-              აუქციონი
-            </Link>
-          </li>
-          <li>
-            <button
-              onClick={() => scrollToSection("home")}
-              className="block py-2"
-            >
-              მთავარი
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => scrollToSection("aboutus")}
-              className="block py-2"
-            >
-              ჩვენს შესახებ
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => scrollToSection("services")}
-              className="block py-2"
-            >
-              სერვისები
-            </button>
-          </li>
-          <li>
-            <button
-              onClick={() => scrollToSection("calculator")}
-              className="block py-2"
-            >
-              კალკულატორი
-            </button>
-          </li>
-        </ul>
-
-        {/* Mobile Contact Info */}
-        <div className="flex gap-2.5 items-center mt-6">
-          <Phone size={24} className="text-green-900" />
-          <div className="text-black text-left">
-            <h4 className="text-sm font-semibold">დაგვირეკე</h4>
-            <span className="text-base font-bold text-red-800">0322197955</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Overlay */}
       {isMenuOpen && (
-        <div
-          onClick={toggleMenu}
-          className="fixed inset-0 bg-black/50 z-30 md:hidden"
-        />
+        <>
+          <div className="fixed inset-0 top-[82px] z-40 bg-black/55 md:hidden" onClick={close} />
+          <div className="fixed right-0 top-[82px] z-50 h-[calc(100vh-82px)] w-[min(360px,86vw)] border-l border-zinc-200 bg-white p-5 text-zinc-950 shadow-2xl md:hidden">
+            <div className="grid gap-2">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={close}
+                  className="rounded-md px-3 py-3 text-base font-semibold hover:bg-zinc-100"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+            <div className="mt-6 grid gap-2 border-t border-zinc-200 pt-5">
+              <a href="tel:+995544440506" className="flex h-11 items-center gap-2 rounded-md bg-zinc-950 px-3 text-sm font-semibold text-white">
+                <Phone className="size-4" />
+                544 440 506
+              </a>
+              <Link href="/calculator" onClick={close} className="flex h-11 items-center gap-2 rounded-md bg-red-700 px-3 text-sm font-semibold text-white">
+                <Calculator className="size-4" />
+                კალკულატორი
+              </Link>
+            </div>
+          </div>
+        </>
       )}
     </header>
   );
