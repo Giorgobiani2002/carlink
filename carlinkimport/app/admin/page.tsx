@@ -19,10 +19,7 @@ const emptyTariff: LocationTariff = {
   auction: "copart",
   state: "",
   city: "",
-  yardName: "",
-  port: "",
-  inlandPrice: 0,
-  oceanPrice: 0,
+  transportPrice: 0,
   active: true,
 };
 
@@ -58,51 +55,42 @@ export default function AdminPage() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [message, setMessage] = useState("");
 
-  const loadTariffs = useCallback(
-    async (accessToken = token) => {
-      if (!hasSupabaseConfig) {
-        setTariffs([]);
-        setMessage("Supabase env vars დამატებული არ არის.");
-        return;
-      }
+  const loadTariffs = useCallback(async (accessToken = token) => {
+    if (!hasSupabaseConfig) {
+      setTariffs([]);
+      setMessage("Supabase env vars დამატებული არ არის.");
+      return;
+    }
 
-      setIsLoading(true);
-      setMessage("");
-      try {
-        setTariffs(await fetchAdminTariffs(accessToken));
-      } catch {
-        setMessage("ტარიფების ჩატვირთვა ვერ მოხერხდა. თავიდან შედი admin-ში.");
-        window.localStorage.removeItem("carlink_admin_token");
-        setToken("");
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [token],
-  );
+    setIsLoading(true);
+    setMessage("");
+    try {
+      setTariffs(await fetchAdminTariffs(accessToken));
+    } catch {
+      setMessage("ტარიფების ჩატვირთვა ვერ მოხერხდა. თავიდან შედი admin-ში.");
+      window.localStorage.removeItem("carlink_admin_token");
+      setToken("");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
 
-  const loadVehicles = useCallback(
-    async (accessToken = token) => {
-      if (!hasSupabaseConfig) {
-        setVehicles([]);
-        return;
-      }
+  const loadVehicles = useCallback(async (accessToken = token) => {
+    if (!hasSupabaseConfig) {
+      setVehicles([]);
+      return;
+    }
 
-      try {
-        setVehicles(await fetchAdminVehicles(accessToken));
-      } catch {
-        setMessage("მანქანების ჩატვირთვა ვერ მოხერხდა.");
-      }
-    },
-    [token],
-  );
+    try {
+      setVehicles(await fetchAdminVehicles(accessToken));
+    } catch {
+      setMessage("მანქანების ჩატვირთვა ვერ მოხერხდა.");
+    }
+  }, [token]);
 
-  const refreshAdminData = useCallback(
-    async (accessToken = token) => {
-      await Promise.all([loadTariffs(accessToken), loadVehicles(accessToken)]);
-    },
-    [loadTariffs, loadVehicles, token],
-  );
+  const refreshAdminData = useCallback(async (accessToken = token) => {
+    await Promise.all([loadTariffs(accessToken), loadVehicles(accessToken)]);
+  }, [loadTariffs, loadVehicles, token]);
 
   useEffect(() => {
     const stored = window.localStorage.getItem("carlink_admin_token");
@@ -132,8 +120,8 @@ export default function AdminPage() {
   const handleSave = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!draft.state || !draft.city || !draft.yardName || !draft.port) {
-      setMessage("შეავსე შტატი, ქალაქი, yard და პორტი.");
+    if (!draft.state || !draft.city) {
+      setMessage("შეავსე auction, state, city/location და transport total.");
       return;
     }
 
@@ -150,7 +138,7 @@ export default function AdminPage() {
       setDraft(emptyTariff);
       setMessage("ტარიფი შენახულია.");
     } catch {
-      setMessage("შენახვა ვერ მოხერხდა. გადაამოწმე Supabase table და permissions.");
+      setMessage("ტარიფის შენახვა ვერ მოხერხდა.");
     } finally {
       setIsLoading(false);
     }
@@ -232,22 +220,8 @@ export default function AdminPage() {
           </div>
 
           <form className="grid gap-4" onSubmit={handleLogin}>
-            <input
-              className={inputClass}
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="Admin email"
-              required
-            />
-            <input
-              className={inputClass}
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Password"
-              required
-            />
+            <input className={inputClass} type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Admin email" required />
+            <input className={inputClass} type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Password" required />
             {message ? <p className="rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-100">{message}</p> : null}
             <button className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-red-700 text-sm font-semibold text-white hover:bg-red-600">
               {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Shield className="size-4" />}
@@ -268,10 +242,7 @@ export default function AdminPage() {
             <h1 className="text-3xl font-semibold">Tariffs and featured vehicles</h1>
           </div>
           <div className="flex gap-2">
-            <button
-              onClick={() => refreshAdminData()}
-              className="h-10 rounded-md border border-white/15 px-4 text-sm font-semibold hover:bg-white/10"
-            >
+            <button onClick={() => refreshAdminData()} className="h-10 rounded-md border border-white/15 px-4 text-sm font-semibold hover:bg-white/10">
               განახლება
             </button>
             <button onClick={logout} className="h-10 rounded-md bg-white px-4 text-sm font-semibold text-zinc-950">
@@ -292,35 +263,21 @@ export default function AdminPage() {
             <div className="grid gap-4">
               <label className="grid gap-2 text-sm font-semibold">
                 Auction
-                <select
-                  className={inputClass}
-                  value={draft.auction}
-                  onChange={(event) => setDraft({ ...draft, auction: event.target.value as AuctionProvider })}
-                >
+                <select className={inputClass} value={draft.auction} onChange={(event) => setDraft({ ...draft, auction: event.target.value as AuctionProvider })}>
                   <option value="copart">Copart</option>
                   <option value="iaai">IAAI</option>
                 </select>
               </label>
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="State" value={draft.state} onChange={(value) => setDraft({ ...draft, state: value })} />
-                <Field label="City" value={draft.city} onChange={(value) => setDraft({ ...draft, city: value })} />
+                <Field label="City / Location" value={draft.city} onChange={(value) => setDraft({ ...draft, city: value })} />
               </div>
-              <Field label="Yard name" value={draft.yardName} onChange={(value) => setDraft({ ...draft, yardName: value })} />
-              <Field label="Port" value={draft.port} onChange={(value) => setDraft({ ...draft, port: value })} />
-              <div className="grid gap-4 md:grid-cols-2">
-                <Field
-                  label="Inland price"
-                  type="number"
-                  value={String(draft.inlandPrice)}
-                  onChange={(value) => setDraft({ ...draft, inlandPrice: Number(value) })}
-                />
-                <Field
-                  label="Ocean price"
-                  type="number"
-                  value={String(draft.oceanPrice)}
-                  onChange={(value) => setDraft({ ...draft, oceanPrice: Number(value) })}
-                />
-              </div>
+              <Field
+                label="Transportation total"
+                type="number"
+                value={String(draft.transportPrice)}
+                onChange={(value) => setDraft({ ...draft, transportPrice: Number(value) })}
+              />
               <button
                 type="button"
                 onClick={() => setDraft({ ...draft, active: !draft.active })}
@@ -329,10 +286,7 @@ export default function AdminPage() {
                 Active tariff
                 {draft.active ? <ToggleRight className="size-6 text-red-700" /> : <ToggleLeft className="size-6 text-zinc-400" />}
               </button>
-              <button
-                disabled={isLoading}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-red-700 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-60"
-              >
+              <button disabled={isLoading} className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-red-700 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-60">
                 {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
                 შენახვა
               </button>
@@ -342,17 +296,16 @@ export default function AdminPage() {
           <div className="overflow-hidden rounded-lg bg-white shadow-sm">
             <div className="border-b border-zinc-200 p-5">
               <h2 className="text-xl font-semibold">ტარიფები</h2>
-              <p className="mt-1 text-sm text-zinc-500">Public calculator აჩვენებს მხოლოდ active ჩანაწერებს.</p>
+              <p className="mt-1 text-sm text-zinc-500">აქ ინახება მხოლოდ auction, location და transportation total.</p>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] text-left text-sm">
+              <table className="w-full min-w-[620px] text-left text-sm">
                 <thead className="bg-zinc-50 text-xs uppercase text-zinc-500">
                   <tr>
                     <th className="px-4 py-3">Auction</th>
+                    <th className="px-4 py-3">State</th>
                     <th className="px-4 py-3">Location</th>
-                    <th className="px-4 py-3">Yard</th>
-                    <th className="px-4 py-3">Port</th>
-                    <th className="px-4 py-3">Prices</th>
+                    <th className="px-4 py-3">Transport</th>
                     <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3"></th>
                   </tr>
@@ -360,7 +313,7 @@ export default function AdminPage() {
                 <tbody className="divide-y divide-zinc-100">
                   {tariffs.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-4 py-10 text-center text-sm text-zinc-500">
+                      <td colSpan={6} className="px-4 py-10 text-center text-sm text-zinc-500">
                         ჯერ ტარიფები დამატებული არ არის.
                       </td>
                     </tr>
@@ -368,28 +321,16 @@ export default function AdminPage() {
                     tariffs.map((tariff) => (
                       <tr key={tariff.id}>
                         <td className="px-4 py-3 font-semibold uppercase">{tariff.auction}</td>
+                        <td className="px-4 py-3">{tariff.state}</td>
+                        <td className="px-4 py-3">{tariff.city}</td>
+                        <td className="px-4 py-3">${tariff.transportPrice}</td>
                         <td className="px-4 py-3">
-                          {tariff.city}, {tariff.state}
-                        </td>
-                        <td className="px-4 py-3">{tariff.yardName}</td>
-                        <td className="px-4 py-3">{tariff.port}</td>
-                        <td className="px-4 py-3">
-                          ${tariff.inlandPrice} / ${tariff.oceanPrice}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                              tariff.active ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-500"
-                            }`}
-                          >
+                          <span className={`rounded-full px-2 py-1 text-xs font-semibold ${tariff.active ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-500"}`}>
                             {tariff.active ? "Active" : "Inactive"}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <button
-                            onClick={() => setDraft(tariff)}
-                            className="rounded-md border border-zinc-200 px-3 py-2 text-xs font-semibold hover:border-red-300"
-                          >
+                          <button onClick={() => setDraft(tariff)} className="rounded-md border border-zinc-200 px-3 py-2 text-xs font-semibold hover:border-red-300">
                             Edit
                           </button>
                         </td>
@@ -416,26 +357,11 @@ export default function AdminPage() {
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Engine" value={vehicleDraft.engine} onChange={(value) => setVehicleDraft({ ...vehicleDraft, engine: value })} />
-                <Field
-                  label="Horsepower"
-                  type="number"
-                  value={String(vehicleDraft.horsepower)}
-                  onChange={(value) => setVehicleDraft({ ...vehicleDraft, horsepower: Number(value) })}
-                />
+                <Field label="Horsepower" type="number" value={String(vehicleDraft.horsepower)} onChange={(value) => setVehicleDraft({ ...vehicleDraft, horsepower: Number(value) })} />
               </div>
               <div className="grid gap-4 md:grid-cols-2">
-                <Field
-                  label="Year from"
-                  type="number"
-                  value={String(vehicleDraft.yearFrom)}
-                  onChange={(value) => setVehicleDraft({ ...vehicleDraft, yearFrom: Number(value) })}
-                />
-                <Field
-                  label="Year to"
-                  type="number"
-                  value={String(vehicleDraft.yearTo)}
-                  onChange={(value) => setVehicleDraft({ ...vehicleDraft, yearTo: Number(value) })}
-                />
+                <Field label="Year from" type="number" value={String(vehicleDraft.yearFrom)} onChange={(value) => setVehicleDraft({ ...vehicleDraft, yearFrom: Number(value) })} />
+                <Field label="Year to" type="number" value={String(vehicleDraft.yearTo)} onChange={(value) => setVehicleDraft({ ...vehicleDraft, yearTo: Number(value) })} />
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Fuel" value={vehicleDraft.fuel} onChange={(value) => setVehicleDraft({ ...vehicleDraft, fuel: value })} />
@@ -470,18 +396,8 @@ export default function AdminPage() {
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <Field
-                  label="Price from"
-                  type="number"
-                  value={String(vehicleDraft.priceFrom)}
-                  onChange={(value) => setVehicleDraft({ ...vehicleDraft, priceFrom: Number(value) })}
-                />
-                <Field
-                  label="Price to"
-                  type="number"
-                  value={String(vehicleDraft.priceTo)}
-                  onChange={(value) => setVehicleDraft({ ...vehicleDraft, priceTo: Number(value) })}
-                />
+                <Field label="Price from" type="number" value={String(vehicleDraft.priceFrom)} onChange={(value) => setVehicleDraft({ ...vehicleDraft, priceFrom: Number(value) })} />
+                <Field label="Price to" type="number" value={String(vehicleDraft.priceTo)} onChange={(value) => setVehicleDraft({ ...vehicleDraft, priceTo: Number(value) })} />
               </div>
               <button
                 type="button"
@@ -501,10 +417,7 @@ export default function AdminPage() {
               >
                 Reset form
               </button>
-              <button
-                disabled={isLoading}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-red-700 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-60"
-              >
+              <button disabled={isLoading} className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-red-700 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-60">
                 {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
                 მანქანის შენახვა
               </button>
@@ -544,24 +457,12 @@ export default function AdminPage() {
                             <Image src={vehicle.imageUrl} alt={`${vehicle.brand} ${vehicle.model}`} fill className="object-cover" />
                           </div>
                         </td>
-                        <td className="px-4 py-3 font-semibold">
-                          {vehicle.brand} {vehicle.model}
-                        </td>
+                        <td className="px-4 py-3 font-semibold">{vehicle.brand} {vehicle.model}</td>
+                        <td className="px-4 py-3">{vehicle.engine} • {vehicle.horsepower} HP • {vehicle.fuel} • {vehicle.drive}</td>
+                        <td className="px-4 py-3">{vehicle.yearFrom} - {vehicle.yearTo}</td>
+                        <td className="px-4 py-3">${vehicle.priceFrom} - ${vehicle.priceTo}</td>
                         <td className="px-4 py-3">
-                          {vehicle.engine} • {vehicle.horsepower} HP • {vehicle.fuel} • {vehicle.drive}
-                        </td>
-                        <td className="px-4 py-3">
-                          {vehicle.yearFrom} - {vehicle.yearTo}
-                        </td>
-                        <td className="px-4 py-3">
-                          ${vehicle.priceFrom} - ${vehicle.priceTo}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                              vehicle.active ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-500"
-                            }`}
-                          >
+                          <span className={`rounded-full px-2 py-1 text-xs font-semibold ${vehicle.active ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-500"}`}>
                             {vehicle.active ? "Active" : "Inactive"}
                           </span>
                         </td>

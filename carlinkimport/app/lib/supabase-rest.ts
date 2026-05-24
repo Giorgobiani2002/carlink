@@ -7,15 +7,16 @@ export const hasSupabaseConfig = Boolean(supabaseUrl && anonKey);
 const vehicleImageBucket = "vehicle-images";
 
 function mapTariff(row: Record<string, unknown>): LocationTariff {
+  const inland = Number(row.inland_price ?? row.inlandPrice ?? 0);
+  const ocean = Number(row.ocean_price ?? row.oceanPrice ?? 0);
+  const transport = Number(row.transport_price ?? row.transportPrice ?? inland + ocean);
+
   return {
     id: String(row.id),
     auction: row.auction as LocationTariff["auction"],
     state: String(row.state),
     city: String(row.city),
-    yardName: String(row.yard_name ?? row.yardName ?? ""),
-    port: String(row.port),
-    inlandPrice: Number(row.inland_price ?? row.inlandPrice ?? 0),
-    oceanPrice: Number(row.ocean_price ?? row.oceanPrice ?? 0),
+    transportPrice: transport,
     active: Boolean(row.active),
   };
 }
@@ -25,10 +26,11 @@ function toSupabaseTariff(tariff: LocationTariff) {
     auction: tariff.auction,
     state: tariff.state,
     city: tariff.city,
-    yard_name: tariff.yardName,
-    port: tariff.port,
-    inland_price: tariff.inlandPrice,
-    ocean_price: tariff.oceanPrice,
+    transport_price: tariff.transportPrice,
+    inland_price: tariff.transportPrice,
+    ocean_price: 0,
+    yard_name: tariff.city,
+    port: tariff.city,
     active: tariff.active,
   };
 }
@@ -73,15 +75,17 @@ async function supabaseFetch(path: string, init: RequestInit = {}, token?: strin
     throw new Error("Supabase env vars are not configured.");
   }
 
+  const headers = new Headers(init.headers ?? {});
+  headers.set("apikey", anonKey);
+  headers.set("Authorization", `Bearer ${token ?? anonKey}`);
+  if (!headers.has("Prefer")) headers.set("Prefer", "return=representation");
+  if (!headers.has("Content-Type") && !(init.body instanceof File) && !(init.body instanceof Blob)) {
+    headers.set("Content-Type", "application/json");
+  }
+
   const response = await fetch(`${supabaseUrl}${path}`, {
     ...init,
-    headers: {
-      apikey: anonKey,
-      Authorization: `Bearer ${token ?? anonKey}`,
-      "Content-Type": "application/json",
-      Prefer: "return=representation",
-      ...(init.headers ?? {}),
-    },
+    headers,
   });
 
   if (!response.ok) {
@@ -98,16 +102,12 @@ function sanitizeFileName(name: string) {
 }
 
 export async function fetchPublicTariffs() {
-  const rows = await supabaseFetch(
-    "/rest/v1/location_tariffs?select=*&active=eq.true&order=state.asc,city.asc",
-  );
+  const rows = await supabaseFetch("/rest/v1/location_tariffs?select=*&active=eq.true&order=state.asc,city.asc");
   return (rows as Record<string, unknown>[]).map(mapTariff);
 }
 
 export async function fetchPublicVehicles() {
-  const rows = await supabaseFetch(
-    "/rest/v1/featured_vehicles?select=*&active=eq.true&order=brand.asc,model.asc",
-  );
+  const rows = await supabaseFetch("/rest/v1/featured_vehicles?select=*&active=eq.true&order=brand.asc,model.asc");
   return (rows as Record<string, unknown>[]).map(mapVehicle);
 }
 

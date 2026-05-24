@@ -69,7 +69,6 @@ export default function CalculatorPage() {
           auction,
           tariff: selectedTariff,
           vehicleType,
-          selectedServices: [],
         })
       : null;
 
@@ -142,7 +141,7 @@ export default function CalculatorPage() {
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-sm font-semibold">ქალაქი / yard</span>
+                <span className="mb-2 block text-sm font-semibold">ლოკაცია</span>
                 <select
                   className={inputClass}
                   value={selectedTariff?.id ?? ""}
@@ -150,7 +149,7 @@ export default function CalculatorPage() {
                 >
                   {cityTariffs.map((tariff) => (
                     <option key={tariff.id} value={tariff.id}>
-                      {tariff.city} - {tariff.yardName}
+                      {tariff.city}
                     </option>
                   ))}
                 </select>
@@ -200,7 +199,7 @@ export default function CalculatorPage() {
 
           {selectedTariff ? (
             <div className="mt-5 rounded-2xl border border-white/10 px-4 py-3 text-sm text-zinc-300">
-              {selectedTariff.city}, {selectedTariff.state} • {selectedTariff.port}
+              {selectedTariff.city}, {selectedTariff.state}
             </div>
           ) : null}
         </aside>

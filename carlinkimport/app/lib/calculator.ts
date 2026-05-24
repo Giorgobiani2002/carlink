@@ -6,14 +6,9 @@ export type LocationTariff = {
   auction: AuctionProvider;
   state: string;
   city: string;
-  yardName: string;
-  port: string;
-  inlandPrice: number;
-  oceanPrice: number;
+  transportPrice: number;
   active: boolean;
 };
-
-export type OptionalService = "titleCheck" | "insurance" | "priorityDelivery";
 
 export type FeaturedVehicle = {
   id: string;
@@ -33,8 +28,6 @@ export type FeaturedVehicle = {
 
 export type CalculationResult = {
   auctionFee: number;
-  inland: number;
-  ocean: number;
   transportTotal: number;
   total: number;
 };
@@ -54,81 +47,6 @@ export const vehicleTypes: Record<VehicleType, { label: string; multiplier: numb
   ev: { label: "Electric Vehicle", multiplier: 1.2 },
   heavy: { label: "Heavy / Special", multiplier: 1.55 },
 };
-
-export const optionalServices: Record<OptionalService, { label: string; price: number }> = {
-  titleCheck: { label: "Title check", price: 35 },
-  insurance: { label: "Insurance", price: 120 },
-  priorityDelivery: { label: "Priority delivery", price: 180 },
-};
-
-export const sampleTariffs: LocationTariff[] = [
-  {
-    id: "copart-ca-los-angeles",
-    auction: "copart",
-    state: "California",
-    city: "Los Angeles",
-    yardName: "Los Angeles Yard",
-    port: "Los Angeles",
-    inlandPrice: 260,
-    oceanPrice: 1020,
-    active: true,
-  },
-  {
-    id: "copart-tx-houston",
-    auction: "copart",
-    state: "Texas",
-    city: "Houston",
-    yardName: "Houston Yard",
-    port: "Houston",
-    inlandPrice: 190,
-    oceanPrice: 980,
-    active: true,
-  },
-  {
-    id: "copart-ga-atlanta",
-    auction: "copart",
-    state: "Georgia",
-    city: "Atlanta",
-    yardName: "Atlanta East",
-    port: "Savannah",
-    inlandPrice: 360,
-    oceanPrice: 930,
-    active: true,
-  },
-  {
-    id: "iaai-nj-avenel",
-    auction: "iaai",
-    state: "New Jersey",
-    city: "Avenel",
-    yardName: "Avenel Branch",
-    port: "New York / New Jersey",
-    inlandPrice: 210,
-    oceanPrice: 920,
-    active: true,
-  },
-  {
-    id: "iaai-fl-miami",
-    auction: "iaai",
-    state: "Florida",
-    city: "Miami",
-    yardName: "Miami-North",
-    port: "Miami",
-    inlandPrice: 230,
-    oceanPrice: 980,
-    active: true,
-  },
-  {
-    id: "iaai-wa-seattle",
-    auction: "iaai",
-    state: "Washington",
-    city: "Seattle",
-    yardName: "Seattle Branch",
-    port: "Seattle",
-    inlandPrice: 250,
-    oceanPrice: 1120,
-    active: true,
-  },
-];
 
 const iaaiFee: FeeTier[] = [
   { range_min: 0, range_max: 49.99, fee: 25 },
@@ -230,18 +148,13 @@ export function calculateImportTotal(params: {
   auction: AuctionProvider;
   tariff: LocationTariff;
   vehicleType: VehicleType;
-  selectedServices: OptionalService[];
 }): CalculationResult {
   const multiplier = vehicleTypes[params.vehicleType].multiplier;
   const auctionFee = calculateAuctionFee(params.bid, params.auction);
-  const inland = params.tariff.inlandPrice * multiplier;
-  const ocean = params.tariff.oceanPrice * multiplier;
-  const transportTotal = inland + ocean;
+  const transportTotal = params.tariff.transportPrice * multiplier;
 
   return {
     auctionFee,
-    inland,
-    ocean,
     transportTotal,
     total: auctionFee + transportTotal,
   };
