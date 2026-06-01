@@ -26,6 +26,7 @@ export type FeaturedVehicle = {
 };
 
 export type CalculationResult = {
+  carPrice: number;
   auctionFee: number;
   transportTotal: number;
   total: number;
@@ -138,15 +139,17 @@ export function calculateAuctionFee(amount: number, auction: AuctionProvider) {
 export function calculateImportTotal(params: {
   bid: number;
   auction: AuctionProvider;
-  tariff: LocationTariff;
+  tariff: LocationTariff | null;
 }): CalculationResult {
-  const auctionFee = calculateAuctionFee(params.bid, params.auction);
-  const transportTotal = params.tariff.transportPrice;
+  const carPrice = Number.isFinite(params.bid) && params.bid > 0 ? params.bid : 0;
+  const auctionFee = calculateAuctionFee(carPrice, params.auction);
+  const transportTotal = params.tariff?.transportPrice ?? 0;
 
   return {
+    carPrice,
     auctionFee,
     transportTotal,
-    total: auctionFee + transportTotal,
+    total: carPrice + auctionFee + transportTotal,
   };
 }
 

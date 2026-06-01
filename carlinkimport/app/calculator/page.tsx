@@ -52,13 +52,11 @@ export default function CalculatorPage() {
   );
 
   const numericBid = Number(bid);
-  const result = selectedTariff
-    ? calculateImportTotal({
-        bid: Number.isFinite(numericBid) ? numericBid : 0,
-        auction,
-        tariff: selectedTariff,
-      })
-    : null;
+  const result = calculateImportTotal({
+    bid: Number.isFinite(numericBid) ? numericBid : 0,
+    auction,
+    tariff: selectedTariff ?? null,
+  });
 
   return (
     <main className="min-h-screen bg-zinc-100 px-4 py-8 text-zinc-950 md:px-6">
@@ -158,11 +156,12 @@ export default function CalculatorPage() {
 
         <aside className="rounded-3xl border border-zinc-200 bg-zinc-950 p-5 text-white shadow-sm md:p-7">
           <p className="text-sm text-zinc-400">სულ</p>
-          <h2 className="mt-2 text-5xl font-semibold">{result ? formatUsd(result.total) : "$0"}</h2>
+          <h2 className="mt-2 text-5xl font-semibold">{formatUsd(result.total)}</h2>
 
           <div className="mt-8 rounded-2xl bg-white/5 p-4">
-            <Line label="Auction fee" value={result ? formatUsd(result.auctionFee) : "$0"} />
-            <Line label="Transportation total" value={result ? formatUsd(result.transportTotal) : "$0"} />
+            <Line label="Car price" value={formatUsd(result.carPrice)} />
+            <Line label="Auction fee" value={formatUsd(result.auctionFee)} />
+            <Line label="Transportation total" value={formatUsd(result.transportTotal)} />
           </div>
 
           <div className="mt-5 rounded-2xl border border-white/10 px-4 py-3 text-sm text-zinc-300">
