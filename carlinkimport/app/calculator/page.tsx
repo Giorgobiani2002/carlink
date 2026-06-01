@@ -18,14 +18,12 @@ const inputClass =
 export default function CalculatorPage() {
   const [tariffs, setTariffs] = useState<LocationTariff[]>([]);
   const [isLoading, setIsLoading] = useState(hasSupabaseConfig);
-  const [dataMessage, setDataMessage] = useState(
-    hasSupabaseConfig ? "" : "Supabase ჯერ არ არის დაკავშირებული.",
-  );
+  const [dataMessage, setDataMessage] = useState(hasSupabaseConfig ? "" : "Supabase ჯერ არ არის დაკავშირებული.");
   const [auction, setAuction] = useState<AuctionProvider>("copart");
   const [state, setState] = useState("");
   const [tariffId, setTariffId] = useState("");
   const [vehicleType, setVehicleType] = useState<VehicleType>("sedan");
-  const [bid, setBid] = useState("6500");
+  const [bid, setBid] = useState("0");
 
   useEffect(() => {
     if (!hasSupabaseConfig) return;
@@ -57,7 +55,7 @@ export default function CalculatorPage() {
   );
 
   const selectedTariff = useMemo(
-    () => cityTariffs.find((tariff) => tariff.id === tariffId) ?? cityTariffs[0],
+    () => cityTariffs.find((tariff) => tariff.id === tariffId),
     [cityTariffs, tariffId],
   );
 
@@ -142,11 +140,8 @@ export default function CalculatorPage() {
 
               <label className="block">
                 <span className="mb-2 block text-sm font-semibold">ლოკაცია</span>
-                <select
-                  className={inputClass}
-                  value={selectedTariff?.id ?? ""}
-                  onChange={(event) => setTariffId(event.target.value)}
-                >
+                <select className={inputClass} value={tariffId} onChange={(event) => setTariffId(event.target.value)}>
+                  <option value="">აირჩიე ლოკაცია</option>
                   {cityTariffs.map((tariff) => (
                     <option key={tariff.id} value={tariff.id}>
                       {tariff.city}
@@ -180,7 +175,7 @@ export default function CalculatorPage() {
                   inputMode="decimal"
                   value={bid}
                   onChange={(event) => setBid(event.target.value)}
-                  placeholder="6500"
+                  placeholder="0"
                   type="number"
                 />
               </label>
@@ -193,15 +188,13 @@ export default function CalculatorPage() {
           <h2 className="mt-2 text-5xl font-semibold">{result ? formatUsd(result.total) : "$0"}</h2>
 
           <div className="mt-8 rounded-2xl bg-white/5 p-4">
-            <Line label="Auction fee" value={result ? formatUsd(result.auctionFee) : "-"} />
-            <Line label="Transportation total" value={result ? formatUsd(result.transportTotal) : "-"} />
+            <Line label="Auction fee" value={result ? formatUsd(result.auctionFee) : "$0"} />
+            <Line label="Transportation total" value={result ? formatUsd(result.transportTotal) : "$0"} />
           </div>
 
-          {selectedTariff ? (
-            <div className="mt-5 rounded-2xl border border-white/10 px-4 py-3 text-sm text-zinc-300">
-              {selectedTariff.city}, {selectedTariff.state}
-            </div>
-          ) : null}
+          <div className="mt-5 rounded-2xl border border-white/10 px-4 py-3 text-sm text-zinc-300">
+            {selectedTariff ? `${selectedTariff.city}, ${selectedTariff.state}` : "ლოკაცია არ არის არჩეული"}
+          </div>
         </aside>
       </section>
     </main>
