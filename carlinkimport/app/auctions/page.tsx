@@ -6,17 +6,17 @@ const auctionSources = [
   {
     name: "Copart",
     text: "დაზიანებული, clean title და insurance მანქანების დიდი არჩევანი ამერიკის სხვადასხვა აუქციონიდან.",
-    image: "/logistic.jpg",
+    image: "https://images.pexels.com/photos/29566898/pexels-photo-29566898.jpeg?cs=srgb&dl=pexels-bylukemiller-29566898.jpg&fm=jpg",
   },
   {
     name: "IAAI",
     text: "branch-based აუქციონები, lot-ის დეტალური შემოწმება და სხვადასხვა ტიპის inventory.",
-    image: "/logistic2.jpg",
+    image: "https://images.pexels.com/photos/2035016/pexels-photo-2035016.jpeg?cs=srgb&dl=pexels-jibarofoto-2035016.jpg&fm=jpg",
   },
   {
     name: "Dealer search",
     text: "კონკრეტული მოდელის მოძიება პარტნიორი დილერებიდან და ბაზრიდან, მოთხოვნის მიხედვით.",
-    image: "/container.jpg",
+    image: "https://images.pexels.com/photos/25857424/pexels-photo-25857424.jpeg?cs=srgb&dl=pexels-omar-ramadan-1739260-25857424.jpg&fm=jpg",
   },
 ];
 
