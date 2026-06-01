@@ -52,14 +52,13 @@ export default function CalculatorPage() {
   );
 
   const numericBid = Number(bid);
-  const result =
-    selectedTariff && Number.isFinite(numericBid) && numericBid > 0
-      ? calculateImportTotal({
-          bid: numericBid,
-          auction,
-          tariff: selectedTariff,
-        })
-      : null;
+  const result = selectedTariff
+    ? calculateImportTotal({
+        bid: Number.isFinite(numericBid) ? numericBid : 0,
+        auction,
+        tariff: selectedTariff,
+      })
+    : null;
 
   return (
     <main className="min-h-screen bg-zinc-100 px-4 py-8 text-zinc-950 md:px-6">

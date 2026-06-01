@@ -124,6 +124,8 @@ const copartFee: FeeTier[] = [
 ];
 
 export function calculateAuctionFee(amount: number, auction: AuctionProvider) {
+  if (!Number.isFinite(amount) || amount <= 0) return 0;
+
   const tiers = auction === "copart" ? copartFee : iaaiFee;
   const tier = tiers.find(
     (item) => amount >= item.range_min && (item.range_max === null || amount <= item.range_max),
