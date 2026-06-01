@@ -1,5 +1,4 @@
 export type AuctionProvider = "copart" | "iaai";
-export type VehicleType = "sedan" | "suv" | "pickup" | "motorcycle" | "ev" | "heavy";
 
 export type LocationTariff = {
   id: string;
@@ -37,15 +36,6 @@ type FeeTier = {
   range_max: number | null;
   fee: number;
   fee_type?: "percentage";
-};
-
-export const vehicleTypes: Record<VehicleType, { label: string; multiplier: number }> = {
-  sedan: { label: "Sedan", multiplier: 1 },
-  suv: { label: "SUV / Crossover", multiplier: 1.16 },
-  pickup: { label: "Pickup", multiplier: 1.28 },
-  motorcycle: { label: "Motorcycle", multiplier: 0.72 },
-  ev: { label: "Electric Vehicle", multiplier: 1.2 },
-  heavy: { label: "Heavy / Special", multiplier: 1.55 },
 };
 
 const iaaiFee: FeeTier[] = [
@@ -147,11 +137,9 @@ export function calculateImportTotal(params: {
   bid: number;
   auction: AuctionProvider;
   tariff: LocationTariff;
-  vehicleType: VehicleType;
 }): CalculationResult {
-  const multiplier = vehicleTypes[params.vehicleType].multiplier;
   const auctionFee = calculateAuctionFee(params.bid, params.auction);
-  const transportTotal = params.tariff.transportPrice * multiplier;
+  const transportTotal = params.tariff.transportPrice;
 
   return {
     auctionFee,

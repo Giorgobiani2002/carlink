@@ -2,14 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Calculator, Loader2 } from "lucide-react";
-import {
-  AuctionProvider,
-  VehicleType,
-  calculateImportTotal,
-  formatUsd,
-  type LocationTariff,
-  vehicleTypes,
-} from "../lib/calculator";
+import { AuctionProvider, calculateImportTotal, formatUsd, type LocationTariff } from "../lib/calculator";
 import { fetchPublicTariffs, hasSupabaseConfig } from "../lib/supabase-rest";
 
 const inputClass =
@@ -22,7 +15,6 @@ export default function CalculatorPage() {
   const [auction, setAuction] = useState<AuctionProvider>("copart");
   const [state, setState] = useState("");
   const [tariffId, setTariffId] = useState("");
-  const [vehicleType, setVehicleType] = useState<VehicleType>("sedan");
   const [bid, setBid] = useState("0");
 
   useEffect(() => {
@@ -66,7 +58,6 @@ export default function CalculatorPage() {
           bid: numericBid,
           auction,
           tariff: selectedTariff,
-          vehicleType,
         })
       : null;
 
@@ -151,35 +142,18 @@ export default function CalculatorPage() {
               </label>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="block">
-                <span className="mb-2 block text-sm font-semibold">მანქანის ტიპი</span>
-                <select
-                  className={inputClass}
-                  value={vehicleType}
-                  onChange={(event) => setVehicleType(event.target.value as VehicleType)}
-                >
-                  {Object.entries(vehicleTypes).map(([key, item]) => (
-                    <option key={key} value={key}>
-                      {item.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="block">
-                <span className="mb-2 block text-sm font-semibold">Bid amount</span>
-                <input
-                  className={inputClass}
-                  min="0"
-                  inputMode="decimal"
-                  value={bid}
-                  onChange={(event) => setBid(event.target.value)}
-                  placeholder="0"
-                  type="number"
-                />
-              </label>
-            </div>
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold">Bid amount</span>
+              <input
+                className={inputClass}
+                min="0"
+                inputMode="decimal"
+                value={bid}
+                onChange={(event) => setBid(event.target.value)}
+                placeholder="0"
+                type="number"
+              />
+            </label>
           </div>
         </div>
 
