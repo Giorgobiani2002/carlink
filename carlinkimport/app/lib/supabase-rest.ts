@@ -1,5 +1,20 @@
 import { FeaturedVehicle, LocationTariff } from "./calculator";
 
+export type CarPart = {
+  id: string;
+  externalId: string;
+  name: string;
+  brand: string;
+  category: string;
+  model: string;
+  priceGel: number;
+  imageUrl: string;
+  sourceUrl: string;
+  description: string;
+  inStock: boolean;
+  active: boolean;
+};
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -109,6 +124,44 @@ export async function fetchPublicTariffs() {
 export async function fetchPublicVehicles() {
   const rows = await supabaseFetch("/rest/v1/featured_vehicles?select=*&active=eq.true&order=brand.asc,model.asc");
   return (rows as Record<string, unknown>[]).map(mapVehicle);
+}
+
+function mapPart(row: Record<string, unknown>): CarPart {
+  return {
+    id: String(row.id),
+    externalId: String(row.external_id ?? row.externalId ?? ""),
+    name: String(row.name ?? ""),
+    brand: String(row.brand ?? ""),
+    category: String(row.category ?? ""),
+    model: String(row.model ?? ""),
+    priceGel: Number(row.price_gel ?? row.priceGel ?? 0),
+    imageUrl: String(row.image_url ?? row.imageUrl ?? ""),
+    sourceUrl: String(row.source_url ?? row.sourceUrl ?? ""),
+    description: String(row.description ?? ""),
+    inStock: Boolean(row.in_stock ?? row.inStock ?? true),
+    active: Boolean(row.active ?? true),
+  };
+}
+
+export async function fetchPublicParts(filters?: { brand?: string }) {
+  const params = new URLSearchParams({
+    select: "*",
+    active: "eq.true",
+    order: "brand.asc,name.asc",
+  });
+  if (filters?.brand) {
+    params.set("brand", `eq.${filters.brand}`);
+  }
+  const rows = await supabaseFetch(`/rest/v1/car_parts?${params.toString()}`);
+  return (rows as Record<string, unknown>[]).map(mapPart);
+}
+
+export async function fetchPublicPartById(id: string): Promise<CarPart | null> {
+  const rows = await supabaseFetch(
+    `/rest/v1/car_parts?select=*&id=eq.${encodeURIComponent(id)}&active=eq.true&limit=1`,
+  );
+  const list = rows as Record<string, unknown>[];
+  return list.length > 0 ? mapPart(list[0]) : null;
 }
 
 export async function loginAdmin(email: string, password: string) {

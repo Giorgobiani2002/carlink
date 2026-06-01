@@ -241,7 +241,35 @@ export default function AdminPage() {
             <p className="text-sm text-red-300">Carlink Admin</p>
             <h1 className="text-3xl font-semibold">Tariffs and featured vehicles</h1>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={async () => {
+                if (!confirm("დარწმუნებული ხართ, რომ გსურთ ყველა ფასის სისტემაში დამატება? (Batch import)")) return;
+                setIsLoading(true);
+                try {
+                  const res = await fetch("/api/seed-tariffs", {
+                    method: "POST",
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                    },
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    setMessage(`წარმატებით დაემატა ${data.inserted} ტარიფი.`);
+                    refreshAdminData();
+                  } else {
+                    setMessage(`შეცდომა: ${data.error || "Failed to seed"}`);
+                  }
+                } catch (err) {
+                  setMessage("დამატება ვერ მოხერხდა.");
+                } finally {
+                  setIsLoading(false);
+                }
+              }}
+              className="h-10 rounded-md bg-amber-600 px-4 text-sm font-semibold hover:bg-amber-500"
+            >
+              Bulk Add Tariffs
+            </button>
             <button onClick={() => refreshAdminData()} className="h-10 rounded-md border border-white/15 px-4 text-sm font-semibold hover:bg-white/10">
               განახლება
             </button>
