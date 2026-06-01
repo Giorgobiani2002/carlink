@@ -403,6 +403,7 @@ export async function POST(req: NextRequest) {
     city: t.city,
     yard_name: t.city,
     port: t.city,
+    transport_price: t.price,
     inland_price: t.price,
     ocean_price: 0,
     active: true,
