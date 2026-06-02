@@ -144,8 +144,8 @@ export function calculateImportTotal(params: {
   const carPrice = Number.isFinite(params.bid) && params.bid > 0 ? params.bid : 0;
   const auctionFee = calculateAuctionFee(carPrice, params.auction);
   const baseTransport = params.tariff?.transportPrice ?? 0;
-  // Cars over $12,000 carry a 1% surcharge on transportation (1% of car price).
-  const transportSurcharge = carPrice > 12000 ? carPrice * 0.01 : 0;
+  // Cars over $12,000 carry a 1% surcharge on transportation (1% of the transport price).
+  const transportSurcharge = carPrice > 12000 ? baseTransport * 0.01 : 0;
   const transportTotal = baseTransport + transportSurcharge;
 
   return {
