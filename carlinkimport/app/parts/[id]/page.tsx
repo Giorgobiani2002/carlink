@@ -1,14 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CheckCircle2, ExternalLink, Package, Phone } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Package, Phone } from "lucide-react";
 import { fetchPublicPartById } from "../../lib/supabase-rest";
+import { parseModel } from "../../lib/parts";
 
 export const dynamic = "force-dynamic";
 
 function formatPrice(value: number): string {
   if (!value) return "ფასი მოთხოვნით";
   return `${value.toLocaleString("ka-GE")} ₾`;
+}
+
+function formatModel(brand: string, model: string): string {
+  if (!model) return "";
+  const { label, yearFrom, yearTo } = parseModel(brand, model);
+  if (yearFrom == null) return label;
+  const years = yearTo ? `${yearFrom}-${yearTo}` : `${yearFrom}+`;
+  return `${label} · ${years}`;
 }
 
 export default async function PartDetailPage({
@@ -84,7 +93,9 @@ export default async function PartDetailPage({
             </h1>
 
             {part.model && (
-              <p className="mt-2 text-sm text-zinc-500">მოდელი: {part.model}</p>
+              <p className="mt-2 text-sm text-zinc-500">
+                მოდელი: {formatModel(part.brand, part.model)}
+              </p>
             )}
 
             <p className="mt-6 text-4xl font-bold text-red-700">
@@ -110,21 +121,10 @@ export default async function PartDetailPage({
                 <Phone className="size-4" />
                 შეუკვეთე ზარით
               </a>
-              {part.sourceUrl && (
-                <a
-                  href={part.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex h-12 items-center gap-2 rounded-md border border-zinc-300 px-5 text-sm font-semibold text-zinc-800 hover:bg-zinc-100"
-                >
-                  ნახე ორიგინალი
-                  <ExternalLink className="size-4" />
-                </a>
-              )}
             </div>
 
             <p className="mt-6 text-xs text-zinc-400">
-              წყარო: autopia.ge — ფასი და მარაგი შესაძლოა შეიცვალოს.
+              ფასი და მარაგი შესაძლოა შეიცვალოს — დაზუსტებისთვის დაგვირეკეთ.
             </p>
           </div>
         </div>

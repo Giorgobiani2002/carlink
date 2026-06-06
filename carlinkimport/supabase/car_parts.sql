@@ -1,4 +1,4 @@
--- Car parts catalogue scraped from autopia.ge
+-- Car parts catalogue.
 -- Run this manually in the Supabase SQL editor.
 
 create table if not exists public.car_parts (

@@ -147,7 +147,8 @@ export async function fetchPublicParts(filters?: { brand?: string }) {
   const params = new URLSearchParams({
     select: "*",
     active: "eq.true",
-    order: "brand.asc,name.asc",
+    order: "model.asc,name.asc",
+    limit: "20000",
   });
   if (filters?.brand) {
     params.set("brand", `eq.${filters.brand}`);
