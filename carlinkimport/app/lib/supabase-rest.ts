@@ -15,6 +15,16 @@ export type CarPart = {
   active: boolean;
 };
 
+// Lightweight shape sent to the client for the parts explorer grid/dropdowns.
+export type PartCard = {
+  id: string;
+  name: string;
+  brand: string;
+  model: string;
+  priceGel: number;
+  imageUrl: string;
+};
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -155,6 +165,40 @@ export async function fetchPublicParts(filters?: { brand?: string }) {
   }
   const rows = await supabaseFetch(`/rest/v1/car_parts?${params.toString()}`);
   return (rows as Record<string, unknown>[]).map(mapPart);
+}
+
+function mapPartCard(row: Record<string, unknown>): PartCard {
+  return {
+    id: String(row.id),
+    name: String(row.name ?? ""),
+    brand: String(row.brand ?? ""),
+    model: String(row.model ?? ""),
+    priceGel: Number(row.price_gel ?? row.priceGel ?? 0),
+    imageUrl: String(row.image_url ?? row.imageUrl ?? ""),
+  };
+}
+
+// Fetch every active part as a lightweight card, paginating past PostgREST's
+// 1000-row cap so the client can filter brand/model/year instantly.
+export async function fetchAllPartCards(): Promise<PartCard[]> {
+  const pageSize = 1000;
+  const all: PartCard[] = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const params = new URLSearchParams({
+      select: "id,name,brand,model,price_gel,image_url",
+      active: "eq.true",
+      order: "id.asc",
+      limit: String(pageSize),
+      offset: String(offset),
+    });
+    const rows = (await supabaseFetch(`/rest/v1/car_parts?${params.toString()}`)) as Record<
+      string,
+      unknown
+    >[];
+    all.push(...rows.map(mapPartCard));
+    if (rows.length < pageSize) break;
+  }
+  return all;
 }
 
 export async function fetchPublicPartById(id: string): Promise<CarPart | null> {

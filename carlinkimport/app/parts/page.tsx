@@ -1,31 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Calculator, Package, Phone } from "lucide-react";
-import { fetchPublicParts, type CarPart } from "../lib/supabase-rest";
-import { PART_BRANDS } from "../lib/parts";
+import { fetchAllPartCards, type PartCard } from "../lib/supabase-rest";
 import PartsExplorer from "./parts-explorer";
 
 export const dynamic = "force-dynamic";
 
-const BRANDS: string[] = [...PART_BRANDS];
-
-async function loadParts(brand: string): Promise<CarPart[]> {
+async function loadParts(): Promise<PartCard[]> {
   try {
-    return await fetchPublicParts({ brand });
+    return await fetchAllPartCards();
   } catch (error) {
     console.error("Failed to load parts", error);
     return [];
   }
 }
 
-export default async function PartsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ brand?: string }>;
-}) {
-  const { brand } = await searchParams;
-  const selectedBrand = brand && BRANDS.includes(brand) ? brand : undefined;
-  const parts = selectedBrand ? await loadParts(selectedBrand) : [];
+export default async function PartsPage() {
+  const parts = await loadParts();
 
   return (
     <main className="bg-white text-zinc-950">
@@ -75,12 +66,7 @@ export default async function PartsPage({
         </div>
       </section>
 
-      <PartsExplorer
-        key={selectedBrand ?? "none"}
-        brands={BRANDS}
-        selectedBrand={selectedBrand}
-        parts={parts}
-      />
+      <PartsExplorer parts={parts} />
     </main>
   );
 }
