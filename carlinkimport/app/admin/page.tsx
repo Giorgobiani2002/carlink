@@ -270,6 +270,35 @@ export default function AdminPage() {
             >
               Bulk Add Tariffs
             </button>
+            <button
+              onClick={async () => {
+                if (!confirm("დარწმუნებული ხართ, რომ გსურთ ნაწილების სკრაპინგის დაწყება? (ეს შეიძლება რამდენიმე წუთი გაგრძელდეს)")) return;
+                setIsLoading(true);
+                setMessage("სკრაპინგი მიმდინარეობს... გთხოვთ დაელოდოთ.");
+                try {
+                  const res = await fetch("/api/admin/scrape-parts", {
+                    method: "POST",
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                    },
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    setMessage("სკრაპინგი წარმატებით დასრულდა!");
+                  } else {
+                    setMessage(`შეცდომა: ${data.error || "სკრაპინგი ვერ მოხერხდა"}`);
+                    console.error("Scrape error:", data);
+                  }
+                } catch (err) {
+                  setMessage("სერვერთან კავშირი ვერ მოხერხდა.");
+                } finally {
+                  setIsLoading(false);
+                }
+              }}
+              className="h-10 rounded-md bg-blue-700 px-4 text-sm font-semibold hover:bg-blue-600"
+            >
+              Scrape Parts
+            </button>
             <button onClick={() => refreshAdminData()} className="h-10 rounded-md border border-white/15 px-4 text-sm font-semibold hover:bg-white/10">
               განახლება
             </button>

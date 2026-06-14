@@ -10,6 +10,7 @@ const navItems = [
   { label: "მთავარი", href: "/" },
   { label: "აუქციონები", href: "/auctions" },
   { label: "კალკულატორი", href: "/calculator" },
+  { label: "VIN ანალიზი", href: "/vin" },
   { label: "ნაწილები", href: "/parts" },
   { label: "სერვისები", href: "/#services" },
   { label: "კონტაქტი", href: "/#contact" },

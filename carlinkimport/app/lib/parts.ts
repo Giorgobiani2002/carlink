@@ -2,7 +2,13 @@
 // into a clean model label + a year range, used to build the
 // Brand → Model → Year dropdowns on the parts page.
 
-export const PART_BRANDS = ["BMW", "Mercedes", "Toyota", "Hyundai", "Kia", "Subaru"] as const;
+export const PART_BRANDS = [
+  "BMW", "Mercedes", "Toyota", "Hyundai", "Kia", "Subaru", 
+  "Audi", "Jeep", "Honda", "Volkswagen", "Mitsubishi", 
+  "Ford", "Chevrolet", "Dodge", "Fiat", "Land Rover", 
+  "Mazda", "Skoda", "Lexus", "Mini", "Nissan", 
+  "Porsche", "Suzuki", "Renault", "Volvo", "Tesla", "Infiniti"
+] as const;
 
 export const MIN_PART_YEAR = 2020;
 
@@ -16,6 +22,27 @@ const BRAND_PREFIX_RE: Record<string, RegExp> = {
   Hyundai: /^HYUNDAI\s*/i,
   Subaru: /^SUBARU\s*/i,
   Kia: /^KIA\s*/i,
+  Audi: /^AUDI\s*/i,
+  Jeep: /^JEEP\s*/i,
+  Honda: /^HONDA\s*/i,
+  Volkswagen: /^VOLKSWAGEN\s*/i,
+  Mitsubishi: /^MITSUBISHI\s*/i,
+  Ford: /^FORD\s*/i,
+  Chevrolet: /^CHEVROLET\s*/i,
+  Dodge: /^DODGE\s*/i,
+  Fiat: /^FIAT\s*/i,
+  "Land Rover": /^LAND\s*ROVER\s*/i,
+  Mazda: /^MAZDA\s*/i,
+  Skoda: /^SKODA\s*/i,
+  Lexus: /^LEXUS\s*/i,
+  Mini: /^MINI\s*/i,
+  Nissan: /^NISSAN\s*/i,
+  Porsche: /^PORSCHE\s*/i,
+  Suzuki: /^SUZUKI\s*/i,
+  Renault: /^RENAULT\s*/i,
+  Volvo: /^VOLVO\s*/i,
+  Tesla: /^TESLA\s*/i,
+  Infiniti: /^INFINITI\s*/i,
 };
 
 export type ParsedModel = {

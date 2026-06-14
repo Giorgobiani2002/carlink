@@ -25,10 +25,22 @@ export type FeaturedVehicle = {
   active: boolean;
 };
 
+export type FuelType = "petrol" | "diesel" | "hybrid" | "electric";
+export type SteeringPosition = "left" | "right";
+
 export type CalculationResult = {
   carPrice: number;
   auctionFee: number;
   transportTotal: number;
+  customs: {
+    excise: number;
+    importTax: number;
+    serviceFee: number;
+    registration: number;
+    smallFees: number;
+    totalGel: number;
+    totalUsd: number;
+  };
   total: number;
 };
 
@@ -38,6 +50,64 @@ type FeeTier = {
   fee: number;
   fee_type?: "percentage";
 };
+
+const USD_GEL_RATE = 2.75; // Approx rate for calculations
+
+export function calculateCustomsFee(params: {
+  year: number;
+  cc: number;
+  fuel: FuelType;
+  steering: SteeringPosition;
+}) {
+  const currentYear = new Date().getFullYear();
+  const age = Math.max(0, currentYear - params.year);
+
+  // 1. Excise (აქციზი)
+  // Age 0-6: 1.5 GEL/cc
+  // Age > 6: 4.5 GEL/cc
+  let exciseRate = age <= 6 ? 1.5 : 4.5;
+
+  if (params.fuel === "electric") {
+    exciseRate = 0;
+  }
+
+  let excise = params.cc * exciseRate;
+
+  // Hybrid discount (60% off -> multiply by 0.4)
+  if (params.fuel === "hybrid" && age <= 6 && params.steering === "left") {
+    excise *= 0.4;
+  }
+
+  // RHD Penalty (3x)
+  if (params.steering === "right") {
+    excise *= 3;
+  }
+
+  // 2. Import Tax (იმპორტის გადასახადი)
+  // Formula: (CC * 0.05) + (CC * Age * 0.0025)
+  let importTax = 0;
+  if (params.fuel !== "electric") {
+    importTax = (params.cc * 0.05) + (params.cc * age * 0.0025);
+  }
+
+  // 3. Fixed Fees
+  const serviceFee = 150;     // საბაჟო მომსახურება
+  const registration = 200;   // რეგისტრაცია
+  const smallFees = 30 + 50 + 50; // ექსპერტიზა (30) + დეკლარაცია (50) + ტრანზიტი (50)
+
+  const totalGel = excise + importTax + serviceFee + registration + smallFees;
+  const totalUsd = totalGel / USD_GEL_RATE;
+
+  return {
+    excise,
+    importTax,
+    serviceFee,
+    registration,
+    smallFees,
+    totalGel,
+    totalUsd,
+  };
+}
 
 const iaaiFee: FeeTier[] = [
   { range_min: 0, range_max: 49.99, fee: 25 },
@@ -140,19 +210,37 @@ export function calculateImportTotal(params: {
   bid: number;
   auction: AuctionProvider;
   tariff: LocationTariff | null;
+  customs?: {
+    year: number;
+    cc: number;
+    fuel: FuelType;
+    steering: SteeringPosition;
+  };
 }): CalculationResult {
   const carPrice = Number.isFinite(params.bid) && params.bid > 0 ? params.bid : 0;
   const auctionFee = calculateAuctionFee(carPrice, params.auction);
   const baseTransport = params.tariff?.transportPrice ?? 0;
-  // Cars over $12,000 carry a 1% surcharge on transportation (1% of car price).
   const transportSurcharge = carPrice > 12000 ? carPrice * 0.01 : 0;
   const transportTotal = baseTransport + transportSurcharge;
+
+  const customs = params.customs
+    ? calculateCustomsFee(params.customs)
+    : {
+      excise: 0,
+      importTax: 0,
+      serviceFee: 0,
+      registration: 0,
+      smallFees: 0,
+      totalGel: 0,
+      totalUsd: 0,
+    };
 
   return {
     carPrice,
     auctionFee,
     transportTotal,
-    total: carPrice + auctionFee + transportTotal,
+    customs,
+    total: carPrice + auctionFee + transportTotal + customs.totalUsd,
   };
 }
 
@@ -160,6 +248,14 @@ export function formatUsd(value: number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+export function formatGel(value: number) {
+  return new Intl.NumberFormat("ka-GE", {
+    style: "currency",
+    currency: "GEL",
     maximumFractionDigits: 0,
   }).format(value);
 }
