@@ -59,6 +59,7 @@ export default async function PartDetailPage({
                 src={part.imageUrl}
                 alt={part.name}
                 fill
+                unoptimized
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover"
                 priority

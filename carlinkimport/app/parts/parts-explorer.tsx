@@ -172,6 +172,7 @@ function PartsGrid({ parts }: { parts: PartCard[] }) {
                 src={part.imageUrl}
                 alt={part.name}
                 fill
+                unoptimized
                 sizes="(max-width: 768px) 100vw, 25vw"
                 className="object-cover transition group-hover:scale-105"
               />
